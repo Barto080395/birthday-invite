@@ -1,10 +1,8 @@
 import React, { useState } from "react";
 import {
-  Alert,
   Image,
   Linking,
   Platform,
-  Share,
   Text,
   TextInput,
   TouchableOpacity,
@@ -17,12 +15,8 @@ import * as Sharing from "expo-sharing";
 import { ConfettiComponent } from "@/components/ui/BirthdayInvite/Confetto";
 import Countdown from "@/components/ui/BirthdayInvite/Countdown";
 import OnboardingModal from "@/components/ui/BirthdayInvite/OnboardingModal";
-import * as Clipboard from "expo-clipboard";
 import { ScrollView, StyleSheet } from "react-native";
 import CountdownModal from "../modal";
-
-
-
 
 export default function Home() {
   // ====== STATI ======
@@ -64,49 +58,21 @@ export default function Home() {
   };
 
   const shareInvite = async () => {
-    try {
-      const message = `
-  🎉 INVITO ALLA FESTA 🎉
-  
-  Titolo: ${title}
-  Data: ${targetDate ? targetDate.toLocaleString() : "Da definire"}
-  Luogo: ${location || "Non specificato"}
-  
-  Apri l'invito: https://tuodominio.com/invito/invito1
-  `;
-  
-      // --- MOBILE (Android / iOS) ---
-      if (Platform.OS !== "web") {
-        // Se image è un oggetto con uri (ImagePicker) -> condividi immagine + testo
-        if (image && typeof image === "object" && "uri" in image && image.uri) {
-          // Sharing.shareAsync con file uri (ImagePicker restituisce questo)
-          await Sharing.shareAsync(image.uri, {
-            dialogTitle: title,
-            mimeType: "image/jpeg",
-            UTI: "image/jpeg",
-            // Nota: alcuni OS ignorano message qui; per sicurezza facciamo un fallback con Share dopo
-          }).catch(async (err) => {
-            // fallback: se l'API file fallisce, condividi almeno il testo
-            await Share.share({ message });
-          });
-        } else {
-          // Nessuna immagine selezionata (es. image è require asset o null) -> condividi testo
-          await Share.share({ message });
-        }
-        return;
+    if (Platform.OS !== "web") {
+      if ("uri" in image) {
+        await Sharing.shareAsync(image.uri, { dialogTitle: title });
       }
-  
-      // --- WEB ---
-      if (navigator.share) {
-        await navigator.share({ title: title || "Invito", text: message });
-      } else {
-        // fallback web: copia negli appunti
-        await Clipboard.setStringAsync(message);
-        Alert.alert("Invito copiato negli appunti!");
-      }
-    } catch (err) {
-      console.error("Errore condivisione:", err);
-      Alert.alert("Errore durante la condivisione. Controlla la console.");
+      return;
+    }
+
+    if (navigator.share) {
+      await navigator.share({
+        title: title || "Invito",
+        text: "Ti invito alla mia festa!",
+      });
+    } else {
+      await navigator.clipboard.writeText("Ti invito alla mia festa!");
+      alert("Copiato negli appunti!");
     }
   };
 
