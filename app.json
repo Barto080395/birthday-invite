@@ -23,7 +23,7 @@
       "package": "com.anonymous.birthdayinvite"
     },
     "web": {
-      "output": "dist",
+      "output": "static",
       "favicon": "./assets/images/favicon.png"
     },
     "plugins": [
