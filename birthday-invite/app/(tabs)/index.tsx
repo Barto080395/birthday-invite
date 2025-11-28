@@ -221,7 +221,7 @@ const styles = StyleSheet.create({
     backgroundColor: "rgba(255,120,170,0.85)",
     justifyContent: "center",
     alignItems: "center",
-    zIndex: 10, // sopra tutto il contenuto della card
+    zIndex: 10, 
   },
   helpButtonText: {
     color: "#fff",
