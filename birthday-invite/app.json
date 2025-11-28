@@ -23,9 +23,9 @@
       "package": "com.anonymous.birthdayinvite"
     },
     "web": {
-      "output": "static",
+      "output": "dist",
       "favicon": "./assets/images/favicon.png"
-    },
+    }    
     "plugins": [
       "expo-router",
       [
