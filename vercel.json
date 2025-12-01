@@ -7,18 +7,9 @@
       }
     ],
     "routes": [
-      {
-        "src": "/_expo/(.*)",
-        "dest": "/dist/_expo/$1"
-      },
-      {
-        "src": "/assets/(.*)",
-        "dest": "/dist/assets/$1"
-      },
-      {
-        "src": "/(.*)",
-        "dest": "/dist/index.html"
-      }
+      { "src": "/_expo/(.*)", "dest": "/dist/_expo/$1" },
+      { "src": "/assets/(.*)", "dest": "/dist/assets/$1" },
+      { "src": "/(.*)", "dest": "/dist/index.html" }
     ]
   }
   
