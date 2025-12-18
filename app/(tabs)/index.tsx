@@ -114,18 +114,31 @@ export default function Home() {
   };
 
   const shareInvite = async () => {
-    const link = generateInviteLink();
-    const text = `🎉 ${title}\nTi invito alla mia festa!\n${link}`;
-
+    // 1️⃣ Prepara i dati dell'invito
+    const invite = {
+      title,
+      location,
+      date: targetDate?.toISOString(),
+    };
+  
+    // 2️⃣ Codifica in Base64 sicura per UTF-8
+    const encodeBase64 = (str: string) => btoa(unescape(encodeURIComponent(str)));
+    const decodeBase64 = (str: string) => decodeURIComponent(escape(atob(str)));
+  
+    const encodedInvite = encodeBase64(JSON.stringify(invite));
+  
+    // 3️⃣ Crea un link condivisibile
+    const link = `https://birthday-invite.com/?data=${encodedInvite}`;
+    const text = `🎉 ${title}\nTi invito alla mia festa! 💌\nScopri tutti i dettagli qui: ${link}`;
+  
+    // 4️⃣ Condivisione
     if (Platform.OS !== "web") {
       if ("uri" in image) {
-        await Sharing.shareAsync(image.uri, { dialogTitle: title });
-      } else {
-        alert(text);
+        await Sharing.shareAsync(image.uri, { dialogTitle: title, mimeType: "image/jpeg" });
       }
       return;
     }
-
+  
     if (navigator.share) {
       await navigator.share({ title, text });
     } else {
@@ -133,6 +146,7 @@ export default function Home() {
       alert("Invito copiato negli appunti!");
     }
   };
+  
 
   // ====== UI ======
   return (
