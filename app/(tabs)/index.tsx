@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState } from "react";
 import {
   Image,
   Linking,
@@ -7,8 +7,6 @@ import {
   TextInput,
   TouchableOpacity,
   View,
-  ScrollView,
-  StyleSheet,
 } from "react-native";
 
 import * as ImagePicker from "expo-image-picker";
@@ -17,40 +15,19 @@ import * as Sharing from "expo-sharing";
 import { ConfettiComponent } from "@/components/ui/BirthdayInvite/Confetto";
 import Countdown from "@/components/ui/BirthdayInvite/Countdown";
 import OnboardingModal from "@/components/ui/BirthdayInvite/OnboardingModal";
+import { ScrollView, StyleSheet } from "react-native";
 import CountdownModal from "../modal";
-
-// Base64 per codificare/decodificare JSON
-import { encode as btoa, decode as atob } from "base-64";
 
 export default function Home() {
   // ====== STATI ======
   const [title, setTitle] = useState("🎉 Festa di Compleanno 🎉");
   const [isEditingTitle, setIsEditingTitle] = useState(false);
+
   const [location, setLocation] = useState("");
   const [image, setImage] = useState(require("../../assets/images/icon.jpg"));
   const [targetDate, setTargetDate] = useState<Date | null>(null);
   const [showCountdownModal, setShowCountdownModal] = useState(false);
   const [showOnboarding, setShowOnboarding] = useState(true);
-
-  // ====== Load dati da link (solo web) ======
-  useEffect(() => {
-    if (Platform.OS === "web") {
-      const params = new URLSearchParams(window.location.search);
-      const data = params.get("data");
-      if (data) {
-        try {
-          const json = atob(data);
-          const obj = JSON.parse(json);
-          setTitle(obj.title);
-          setLocation(obj.location);
-          setTargetDate(obj.targetDate ? new Date(obj.targetDate) : null);
-          setImage(obj.image ? { uri: obj.image } : image);
-        } catch (e) {
-          console.error("Errore nel decodificare l'invito", e);
-        }
-      }
-    }
-  }, []);
 
   // ====== FUNZIONI ======
   const pickImage = async () => {
@@ -58,30 +35,33 @@ export default function Home() {
       const input = document.createElement("input");
       input.type = "file";
       input.accept = "image/*";
-
+  
       input.onchange = (e: any) => {
         const file = e.target.files[0];
         if (!file) return;
-
+  
         const url = URL.createObjectURL(file);
         setImage({ uri: url });
       };
-
+  
       input.click();
       return;
     }
-
+  
     const result = await ImagePicker.launchImageLibraryAsync({
       mediaTypes: ImagePicker.MediaTypeOptions.Images,
       quality: 1,
     });
-
+  
     if (!result.canceled) {
       setImage({ uri: result.assets[0].uri });
     }
   };
+  
 
-  const editTitle = () => setIsEditingTitle(true);
+  const editTitle = () => {
+    setIsEditingTitle(true);
+  };
 
   const confirmTitle = (newTitle: string) => {
     if (newTitle.trim()) {
@@ -92,49 +72,18 @@ export default function Home() {
 
   const openLocation = () => {
     if (!location.trim()) return;
+  
     const url = `https://www.google.com/maps?q=${encodeURIComponent(location)}`;
     Linking.openURL(url);
   };
-
-  // Genera link autocontenuto per l’invito
-  const generateInviteLink = () => {
-    const data = {
-      title,
-      location,
-      targetDate: targetDate ? targetDate.toISOString() : null,
-      image: "uri" in image ? image.uri : null,
-    };
-    const json = JSON.stringify(data);
-    const encoded = btoa(json);
-    if (Platform.OS === "web") {
-      return `${window.location.origin}/?data=${encoded}`;
-    } else {
-      return `Invito: ${title}\nLink web: condividi il link manualmente!`;
-    }
-  };
+  
 
   const shareInvite = async () => {
-    // 1️⃣ Prepara i dati dell'invito
-    const invite = {
-      title,
-      location,
-      date: targetDate?.toISOString(),
-    };
+    const text = `🎉 ${title}\nTi invito alla mia festa!`;
   
-    // 2️⃣ Codifica in Base64 sicura per UTF-8
-    const encodeBase64 = (str: string) => btoa(unescape(encodeURIComponent(str)));
-    const decodeBase64 = (str: string) => decodeURIComponent(escape(atob(str)));
-  
-    const encodedInvite = encodeBase64(JSON.stringify(invite));
-  
-    // 3️⃣ Crea un link condivisibile
-    const link = `https://birthday-invite.com/?data=${encodedInvite}`;
-    const text = `🎉 ${title}\nTi invito alla mia festa! 💌\nScopri tutti i dettagli qui: ${link}`;
-  
-    // 4️⃣ Condivisione
     if (Platform.OS !== "web") {
       if ("uri" in image) {
-        await Sharing.shareAsync(image.uri, { dialogTitle: title, mimeType: "image/jpeg" });
+        await Sharing.shareAsync(image.uri, { dialogTitle: title });
       }
       return;
     }
@@ -151,14 +100,17 @@ export default function Home() {
   // ====== UI ======
   return (
     <View style={{ flex: 1 }}>
-      <OnboardingModal visible={showOnboarding} onClose={() => setShowOnboarding(false)} />
+      <OnboardingModal
+        visible={showOnboarding}
+        onClose={() => setShowOnboarding(false)}
+      />
 
       <ScrollView
         style={{ backgroundColor: "#ffbfd6", flex: 1 }}
         contentContainerStyle={{
-          flexGrow: 1,
-          justifyContent: "center",
-          alignItems: "center",
+          flexGrow: 1, // permette al contenuto di occupare tutto lo spazio
+          justifyContent: "center", // centra verticalmente
+          alignItems: "center", // centra orizzontalmente
           paddingBottom: 50,
         }}
       >
@@ -169,11 +121,18 @@ export default function Home() {
           >
             <Text style={styles.helpButtonText}>?</Text>
           </TouchableOpacity>
-
+          {/* TITOLO */}
           {isEditingTitle ? (
             <View style={{ width: "100%", marginBottom: 18 }}>
-              <TextInput value={title} onChangeText={setTitle} style={styles.input} />
-              <TouchableOpacity style={styles.confirmButton} onPress={() => confirmTitle(title)}>
+              <TextInput
+                value={title}
+                onChangeText={setTitle}
+                style={styles.input}
+              />
+              <TouchableOpacity
+                style={styles.confirmButton}
+                onPress={() => confirmTitle(title)}
+              >
                 <Text style={styles.confirmText}>Conferma</Text>
               </TouchableOpacity>
             </View>
@@ -186,22 +145,32 @@ export default function Home() {
             </View>
           )}
 
+          {/* FOTO */}
           <TouchableOpacity style={styles.photoWrapper} onPress={pickImage}>
             <Image source={image} style={styles.photo} />
           </TouchableOpacity>
 
+          {/* MESSAGGIO */}
           <Text style={styles.message}>
-            Vuoi venire alla festa? 🎂 Sarà una giornata fantastica, ti aspetto! ✨
+            Vuoi venire alla festa? 🎂 Sarà una giornata fantastica, ti aspetto!
+            ✨
           </Text>
 
-          <TouchableOpacity style={styles.countdownWrapper} onPress={() => setShowCountdownModal(true)}>
+          {/* COUNTDOWN */}
+          <TouchableOpacity
+            style={styles.countdownWrapper}
+            onPress={() => setShowCountdownModal(true)}
+          >
             {targetDate ? (
               <Countdown targetDate={targetDate} />
             ) : (
-              <Text style={styles.countdownPlaceholder}>Imposta il countdown ⏳</Text>
+              <Text style={styles.countdownPlaceholder}>
+                Imposta il countdown ⏳
+              </Text>
             )}
           </TouchableOpacity>
 
+          {/* LOCATION */}
           <View style={styles.locationRow}>
             <TextInput
               placeholder="Inserisci la location"
@@ -214,10 +183,12 @@ export default function Home() {
             </TouchableOpacity>
           </View>
 
+          {/* SHARE */}
           <TouchableOpacity style={styles.shareButton} onPress={shareInvite}>
             <Text style={styles.shareText}>Condividi Invito</Text>
           </TouchableOpacity>
 
+          {/* MODALE COUNTDOWN */}
           {showCountdownModal && (
             <CountdownModal
               initialDate={targetDate || new Date()}
@@ -236,7 +207,7 @@ export default function Home() {
       </ScrollView>
     </View>
   );
-            }
+}
 
 // ====== STILI ======
 
