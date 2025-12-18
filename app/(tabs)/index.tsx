@@ -12,6 +12,7 @@ import {
 import * as ImagePicker from "expo-image-picker";
 import * as Sharing from "expo-sharing";
 
+import { ConfettiComponent } from "@/components/ui/BirthdayInvite/Confetto";
 import Countdown from "@/components/ui/BirthdayInvite/Countdown";
 import OnboardingModal from "@/components/ui/BirthdayInvite/OnboardingModal";
 import { ScrollView, StyleSheet } from "react-native";
@@ -34,16 +35,17 @@ export default function Home() {
       alert("Selezione immagini non supportata sul web");
       return;
     }
-
+  
     const result = await ImagePicker.launchImageLibraryAsync({
       mediaTypes: ImagePicker.MediaTypeOptions.Images,
       quality: 1,
     });
-
+  
     if (!result.canceled) {
       setImage({ uri: result.assets[0].uri });
     }
   };
+  
 
   const editTitle = () => {
     setIsEditingTitle(true);
@@ -58,10 +60,11 @@ export default function Home() {
 
   const openLocation = () => {
     if (!location.trim()) return;
-
+  
     const url = `https://www.google.com/maps?q=${encodeURIComponent(location)}`;
     Linking.openURL(url);
   };
+  
 
   const shareInvite = async () => {
     if (Platform.OS === "web") {
@@ -72,16 +75,20 @@ export default function Home() {
           url: window.location.href,
         });
       } else {
-        await navigator.clipboard.writeText("Ti invito alla mia festa! 🎉");
+        await navigator.clipboard.writeText(
+          "Ti invito alla mia festa! 🎉"
+        );
         alert("Copiato negli appunti!");
       }
       return;
     }
-
+  
     if ("uri" in image) {
       await Sharing.shareAsync(image.uri, { dialogTitle: title });
     }
   };
+  
+  
 
   // ====== UI ======
   return (
@@ -187,9 +194,9 @@ export default function Home() {
           )}
         </View>
 
-        {/*<View style={[StyleSheet.absoluteFill, { pointerEvents: "none" }]}>
+        <View style={[StyleSheet.absoluteFill, { pointerEvents: "none" }]}>
           <ConfettiComponent />
-            </View>*/}
+        </View>
       </ScrollView>
     </View>
   );
@@ -228,7 +235,7 @@ const styles = StyleSheet.create({
     backgroundColor: "rgba(255,120,170,0.85)",
     justifyContent: "center",
     alignItems: "center",
-    zIndex: 10,
+    zIndex: 10, 
   },
   helpButtonText: {
     color: "#fff",
