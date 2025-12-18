@@ -31,40 +31,52 @@ export default function Home() {
 
   // ====== FUNZIONI ======
   const pickImage = async () => {
-    // Se siamo su Web
+    // ===== WEB =====
     if (Platform.OS === "web") {
       const input = document.createElement("input");
       input.type = "file";
       input.accept = "image/*";
-
+  
       input.onchange = (e: any) => {
-        const file = e.target.files[0];
+        const file = e.target.files?.[0];
         if (!file) return;
-
+  
         const url = URL.createObjectURL(file);
-        // Imposta immagine come oggetto { uri }
+  
+        // 🔑 SEMPRE { uri }
         setImage({ uri: url });
       };
-
+  
       input.click();
       return;
     }
-
-    // Se siamo su iOS / Android
+  
+    // ===== IOS / ANDROID =====
     try {
+      // 🔴 QUESTO MANCAVA IN PROD
+      const permission =
+        await ImagePicker.requestMediaLibraryPermissionsAsync();
+  
+      if (!permission.granted) {
+        alert("Permesso galleria negato");
+        return;
+      }
+  
       const result = await ImagePicker.launchImageLibraryAsync({
         mediaTypes: ImagePicker.MediaTypeOptions.Images,
+        allowsEditing: true, // 🔑 iOS fix
         quality: 1,
       });
-
-      if (!result.canceled) {
-        // iOS / Android restituisce result.assets[0].uri
+  
+      if (!result.canceled && result.assets?.length > 0) {
+        // 🔑 SEMPRE { uri }
         setImage({ uri: result.assets[0].uri });
       }
     } catch (err) {
-      console.error("Errore durante la selezione immagine:", err);
+      console.error("Errore ImagePicker:", err);
     }
   };
+  
 
   const editTitle = () => {
     setIsEditingTitle(true);
