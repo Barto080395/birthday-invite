@@ -31,52 +31,46 @@ export default function Home() {
 
   // ====== FUNZIONI ======
   const pickImage = async () => {
-    // ===== WEB =====
-    if (Platform.OS === "web") {
-      const input = document.createElement("input");
-      input.type = "file";
-      input.accept = "image/*";
-  
-      input.onchange = (e: any) => {
-        const file = e.target.files?.[0];
-        if (!file) return;
-  
-        const url = URL.createObjectURL(file);
-  
-        // 🔑 SEMPRE { uri }
-        setImage({ uri: url });
-      };
-  
-      input.click();
-      return;
-    }
-  
-    // ===== IOS / ANDROID =====
     try {
-      // 🔴 QUESTO MANCAVA IN PROD
-      const permission =
-        await ImagePicker.requestMediaLibraryPermissionsAsync();
-  
-      if (!permission.granted) {
-        alert("Permesso galleria negato");
+      if (Platform.OS === "web") {
+        // Web: usa input type=file
+        const input = document.createElement("input");
+        input.type = "file";
+        input.accept = "image/*";
+
+        input.onchange = (e: any) => {
+          const file = e.target.files[0];
+          if (!file) return;
+
+          // Crea un URL temporaneo leggibile dal browser
+          const url = URL.createObjectURL(file);
+          setImage({ uri: url });
+
+          // Se vuoi condividere con altri, qui dovresti fare l'upload al server
+          // e poi usare l'URL pubblico restituito dal server
+        };
+
+        input.click();
         return;
       }
-  
+
+      // Mobile: iOS / Android
       const result = await ImagePicker.launchImageLibraryAsync({
         mediaTypes: ImagePicker.MediaTypeOptions.Images,
-        allowsEditing: true, // 🔑 iOS fix
         quality: 1,
       });
-  
-      if (!result.canceled && result.assets?.length > 0) {
-        // 🔑 SEMPRE { uri }
+
+      if (!result.canceled) {
         setImage({ uri: result.assets[0].uri });
+
+        // Per la produzione, puoi fare anche l'upload qui
+        // e poi salvare l'URL restituito sul server / database
       }
     } catch (err) {
-      console.error("Errore ImagePicker:", err);
+      console.error("Errore durante la selezione immagine:", err);
+      alert("Impossibile selezionare l'immagine, riprova.");
     }
   };
-  
 
   const editTitle = () => {
     setIsEditingTitle(true);
