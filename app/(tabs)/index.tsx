@@ -31,6 +31,7 @@ export default function Home() {
 
   // ====== FUNZIONI ======
   const pickImage = async () => {
+    // Se siamo su Web
     if (Platform.OS === "web") {
       const input = document.createElement("input");
       input.type = "file";
@@ -41,6 +42,7 @@ export default function Home() {
         if (!file) return;
   
         const url = URL.createObjectURL(file);
+        // Imposta immagine come oggetto { uri }
         setImage({ uri: url });
       };
   
@@ -48,15 +50,22 @@ export default function Home() {
       return;
     }
   
-    const result = await ImagePicker.launchImageLibraryAsync({
-      mediaTypes: ImagePicker.MediaTypeOptions.Images,
-      quality: 1,
-    });
+    // Se siamo su iOS / Android
+    try {
+      const result = await ImagePicker.launchImageLibraryAsync({
+        mediaTypes: ImagePicker.MediaTypeOptions.Images,
+        quality: 1,
+      });
   
-    if (!result.canceled) {
-      setImage({ uri: result.assets[0].uri });
+      if (!result.canceled) {
+        // iOS / Android restituisce result.assets[0].uri
+        setImage({ uri: result.assets[0].uri });
+      }
+    } catch (err) {
+      console.error("Errore durante la selezione immagine:", err);
     }
   };
+  
   
 
   const editTitle = () => {
