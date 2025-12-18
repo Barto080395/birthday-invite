@@ -20,6 +20,7 @@
     "@react-navigation/bottom-tabs": "^7.4.0",
     "@react-navigation/elements": "^2.6.3",
     "@react-navigation/native": "^7.1.8",
+    "base-64": "^1.0.0",
     "expo": "~54.0.29",
     "expo-clipboard": "~8.0.8",
     "expo-constants": "~18.0.10",
@@ -48,6 +49,7 @@
     "react-router-dom": "^7.10.1"
   },
   "devDependencies": {
+    "@types/base-64": "^1.0.2",
     "@types/react": "~19.1.0",
     "babel-plugin-module-resolver": "^5.0.2",
     "electron": "^39.2.7",
