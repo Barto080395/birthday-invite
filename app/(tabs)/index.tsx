@@ -32,7 +32,19 @@ export default function Home() {
   // ====== FUNZIONI ======
   const pickImage = async () => {
     if (Platform.OS === "web") {
-      alert("Selezione immagini non supportata sul web");
+      const input = document.createElement("input");
+      input.type = "file";
+      input.accept = "image/*";
+  
+      input.onchange = (e: any) => {
+        const file = e.target.files[0];
+        if (!file) return;
+  
+        const url = URL.createObjectURL(file);
+        setImage({ uri: url });
+      };
+  
+      input.click();
       return;
     }
   
@@ -67,27 +79,22 @@ export default function Home() {
   
 
   const shareInvite = async () => {
-    if (Platform.OS === "web") {
-      if (navigator.share) {
-        await navigator.share({
-          title,
-          text: "Ti invito alla mia festa! 🎉",
-          url: window.location.href,
-        });
-      } else {
-        await navigator.clipboard.writeText(
-          "Ti invito alla mia festa! 🎉"
-        );
-        alert("Copiato negli appunti!");
+    const text = `🎉 ${title}\nTi invito alla mia festa!`;
+  
+    if (Platform.OS !== "web") {
+      if ("uri" in image) {
+        await Sharing.shareAsync(image.uri, { dialogTitle: title });
       }
       return;
     }
   
-    if ("uri" in image) {
-      await Sharing.shareAsync(image.uri, { dialogTitle: title });
+    if (navigator.share) {
+      await navigator.share({ title, text });
+    } else {
+      await navigator.clipboard.writeText(text);
+      alert("Invito copiato negli appunti!");
     }
   };
-  
   
 
   // ====== UI ======
