@@ -1,17 +1,27 @@
 {
   "expo": {
-    "name": "birthday-invite",
+    "name": "Birthday Invite",
     "slug": "birthday-invite",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/images/icon.png",
     "scheme": "birthdayinvite",
     "userInterfaceStyle": "automatic",
-    "newArchEnabled": true,
+    "newArchEnabled": false,
+    "platforms": [
+      "ios",
+      "android",
+      "web"
+    ],
+    "assetBundlePatterns": [
+      "**/*"
+    ],
     "ios": {
-      "supportsTablet": true
+      "supportsTablet": true,
+      "bundleIdentifier": "com.anonymous.birthdayinvite"
     },
     "android": {
+      "package": "com.anonymous.birthdayinvite",
       "adaptiveIcon": {
         "backgroundColor": "#E6F4FE",
         "foregroundImage": "./assets/images/android-icon-foreground.png",
@@ -19,11 +29,11 @@
         "monochromeImage": "./assets/images/android-icon-monochrome.png"
       },
       "edgeToEdgeEnabled": true,
-      "predictiveBackGestureEnabled": false,
-      "package": "com.anonymous.birthdayinvite"
+      "predictiveBackGestureEnabled": false
     },
     "web": {
-      "output": "dist",
+      "bundler": "metro",
+      "output": "static",
       "favicon": "./assets/images/favicon.png"
     },
     "plugins": [
@@ -39,11 +49,19 @@
             "backgroundColor": "#000000"
           }
         }
-      ]
+      ],
+      "expo-web-browser"
     ],
     "experiments": {
       "typedRoutes": true,
       "reactCompiler": true
-    }
+    },
+    "extra": {
+      "router": {},
+      "eas": {
+        "projectId": "00a0ed5b-ec9b-442c-9e22-bf2073be3d6b"
+      }
+    },
+    "owner": "bart95"
   }
 }

@@ -31,15 +31,21 @@ export default function Home() {
 
   // ====== FUNZIONI ======
   const pickImage = async () => {
+    if (Platform.OS === "web") {
+      alert("Selezione immagini non supportata sul web");
+      return;
+    }
+  
     const result = await ImagePicker.launchImageLibraryAsync({
       mediaTypes: ImagePicker.MediaTypeOptions.Images,
       quality: 1,
     });
-
+  
     if (!result.canceled) {
       setImage({ uri: result.assets[0].uri });
     }
   };
+  
 
   const editTitle = () => {
     setIsEditingTitle(true);
@@ -53,28 +59,36 @@ export default function Home() {
   };
 
   const openLocation = () => {
+    if (!location.trim()) return;
+  
     const url = `https://www.google.com/maps?q=${encodeURIComponent(location)}`;
     Linking.openURL(url);
   };
+  
 
   const shareInvite = async () => {
-    if (Platform.OS !== "web") {
-      if ("uri" in image) {
-        await Sharing.shareAsync(image.uri, { dialogTitle: title });
+    if (Platform.OS === "web") {
+      if (navigator.share) {
+        await navigator.share({
+          title,
+          text: "Ti invito alla mia festa! 🎉",
+          url: window.location.href,
+        });
+      } else {
+        await navigator.clipboard.writeText(
+          "Ti invito alla mia festa! 🎉"
+        );
+        alert("Copiato negli appunti!");
       }
       return;
     }
-
-    if (navigator.share) {
-      await navigator.share({
-        title: title || "Invito",
-        text: "Ti invito alla mia festa!",
-      });
-    } else {
-      await navigator.clipboard.writeText("Ti invito alla mia festa!");
-      alert("Copiato negli appunti!");
+  
+    if ("uri" in image) {
+      await Sharing.shareAsync(image.uri, { dialogTitle: title });
     }
   };
+  
+  
 
   // ====== UI ======
   return (

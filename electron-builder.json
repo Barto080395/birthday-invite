@@ -1,0 +1,14 @@
+{
+    "appId": "com.birthdayinvite.app",
+    "productName": "Birthday Invite",
+    "files": [
+      "dist/**/*",
+      "main.js",
+      "package.json"
+    ],
+    "directories": {
+      "output": "release"
+    },
+    "asar": true
+  }
+  
