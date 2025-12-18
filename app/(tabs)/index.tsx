@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import {
   Image,
   Linking,
@@ -7,6 +7,9 @@ import {
   TextInput,
   TouchableOpacity,
   View,
+  ScrollView,
+  StyleSheet,
+  Alert,
 } from "react-native";
 
 import * as ImagePicker from "expo-image-picker";
@@ -15,96 +18,96 @@ import * as Sharing from "expo-sharing";
 import { ConfettiComponent } from "@/components/ui/BirthdayInvite/Confetto";
 import Countdown from "@/components/ui/BirthdayInvite/Countdown";
 import OnboardingModal from "@/components/ui/BirthdayInvite/OnboardingModal";
-import { ScrollView, StyleSheet } from "react-native";
 import CountdownModal from "../modal";
 
 export default function Home() {
-  // ====== STATI ======
+  // ====== STATE ======
   const [title, setTitle] = useState("🎉 Festa di Compleanno 🎉");
   const [isEditingTitle, setIsEditingTitle] = useState(false);
-
   const [location, setLocation] = useState("");
-  const [image, setImage] = useState(require("../../assets/images/icon.jpg"));
+  const [imageUri, setImageUri] = useState<string | null>(null);
   const [targetDate, setTargetDate] = useState<Date | null>(null);
   const [showCountdownModal, setShowCountdownModal] = useState(false);
   const [showOnboarding, setShowOnboarding] = useState(true);
 
-  // ====== FUNZIONI ======
+  // ====== PERMESSI (iOS / Android) ======
+  useEffect(() => {
+    if (Platform.OS !== "web") {
+      ImagePicker.requestMediaLibraryPermissionsAsync().then(({ status }) => {
+        if (status !== "granted") {
+          Alert.alert(
+            "Permessi necessari",
+            "Serve il permesso per accedere alle foto"
+          );
+        }
+      });
+    }
+  }, []);
+
+  // ====== PICK IMAGE ======
   const pickImage = async () => {
-    // Se siamo su Web
+    // WEB
     if (Platform.OS === "web") {
       const input = document.createElement("input");
       input.type = "file";
       input.accept = "image/*";
-  
+
       input.onchange = (e: any) => {
-        const file = e.target.files[0];
+        const file = e.target.files?.[0];
         if (!file) return;
-  
+
         const url = URL.createObjectURL(file);
-        // Imposta immagine come oggetto { uri }
-        setImage({ uri: url });
+        setImageUri(url);
       };
-  
+
       input.click();
       return;
     }
-  
-    // Se siamo su iOS / Android
+
+    // IOS / ANDROID
     try {
       const result = await ImagePicker.launchImageLibraryAsync({
         mediaTypes: ImagePicker.MediaTypeOptions.Images,
         quality: 1,
+        allowsEditing: true,
       });
-  
-      if (!result.canceled) {
-        // iOS / Android restituisce result.assets[0].uri
-        setImage({ uri: result.assets[0].uri });
+
+      if (!result.canceled && result.assets?.[0]?.uri) {
+        setImageUri(result.assets[0].uri);
       }
-    } catch (err) {
-      console.error("Errore durante la selezione immagine:", err);
-    }
-  };
-  
-  
-
-  const editTitle = () => {
-    setIsEditingTitle(true);
-  };
-
-  const confirmTitle = (newTitle: string) => {
-    if (newTitle.trim()) {
-      setTitle(newTitle);
-      setIsEditingTitle(false);
+    } catch (error) {
+      console.error("Errore ImagePicker:", error);
+      Alert.alert("Errore", "Impossibile selezionare l'immagine");
     }
   };
 
+  // ====== ALTRE FUNZIONI ======
   const openLocation = () => {
     if (!location.trim()) return;
-  
-    const url = `https://www.google.com/maps?q=${encodeURIComponent(location)}`;
-    Linking.openURL(url);
+    Linking.openURL(
+      `https://www.google.com/maps?q=${encodeURIComponent(location)}`
+    );
   };
-  
 
   const shareInvite = async () => {
     const text = `🎉 ${title}\nTi invito alla mia festa!`;
-  
+
     if (Platform.OS !== "web") {
-      if ("uri" in image) {
-        await Sharing.shareAsync(image.uri, { dialogTitle: title });
+      if (imageUri && (await Sharing.isAvailableAsync())) {
+        await Sharing.shareAsync(imageUri, { dialogTitle: title });
+      } else {
+        Alert.alert(text);
       }
       return;
     }
-  
+
     if (navigator.share) {
       await navigator.share({ title, text });
     } else {
       await navigator.clipboard.writeText(text);
-      alert("Invito copiato negli appunti!");
+      alert("Invito copiato!");
     }
   };
-  
 
   // ====== UI ======
   return (
@@ -115,24 +118,13 @@ export default function Home() {
       />
 
       <ScrollView
-        style={{ backgroundColor: "#ffbfd6", flex: 1 }}
-        contentContainerStyle={{
-          flexGrow: 1, // permette al contenuto di occupare tutto lo spazio
-          justifyContent: "center", // centra verticalmente
-          alignItems: "center", // centra orizzontalmente
-          paddingBottom: 50,
-        }}
+        style={{ backgroundColor: "#ffbfd6" }}
+        contentContainerStyle={styles.container}
       >
         <View style={styles.card}>
-          <TouchableOpacity
-            style={styles.helpButtonCard}
-            onPress={() => setShowOnboarding(true)}
-          >
-            <Text style={styles.helpButtonText}>?</Text>
-          </TouchableOpacity>
           {/* TITOLO */}
           {isEditingTitle ? (
-            <View style={{ width: "100%", marginBottom: 18 }}>
+            <>
               <TextInput
                 value={title}
                 onChangeText={setTitle}
@@ -140,30 +132,34 @@ export default function Home() {
               />
               <TouchableOpacity
                 style={styles.confirmButton}
-                onPress={() => confirmTitle(title)}
+                onPress={() => setIsEditingTitle(false)}
               >
                 <Text style={styles.confirmText}>Conferma</Text>
               </TouchableOpacity>
-            </View>
+            </>
           ) : (
-            <View style={{ width: "100%", marginBottom: 18 }}>
+            <>
               <Text style={styles.finalTitle}>{title}</Text>
-              <TouchableOpacity style={styles.editButton} onPress={editTitle}>
+              <TouchableOpacity
+                style={styles.editButton}
+                onPress={() => setIsEditingTitle(true)}
+              >
                 <Text style={styles.editText}>Modifica 🖋️</Text>
               </TouchableOpacity>
-            </View>
+            </>
           )}
 
           {/* FOTO */}
           <TouchableOpacity style={styles.photoWrapper} onPress={pickImage}>
-            <Image source={image} style={styles.photo} />
+            <Image
+              source={
+                imageUri
+                  ? { uri: imageUri }
+                  : require("../../assets/images/icon.jpg")
+              }
+              style={styles.photo}
+            />
           </TouchableOpacity>
-
-          {/* MESSAGGIO */}
-          <Text style={styles.message}>
-            Vuoi venire alla festa? 🎂 Sarà una giornata fantastica, ti aspetto!
-            ✨
-          </Text>
 
           {/* COUNTDOWN */}
           <TouchableOpacity
@@ -196,206 +192,114 @@ export default function Home() {
           <TouchableOpacity style={styles.shareButton} onPress={shareInvite}>
             <Text style={styles.shareText}>Condividi Invito</Text>
           </TouchableOpacity>
-
-          {/* MODALE COUNTDOWN */}
-          {showCountdownModal && (
-            <CountdownModal
-              initialDate={targetDate || new Date()}
-              onConfirm={(date) => {
-                setTargetDate(date);
-                setShowCountdownModal(false);
-              }}
-              onClose={() => setShowCountdownModal(false)}
-            />
-          )}
         </View>
 
         <View style={[StyleSheet.absoluteFill, { pointerEvents: "none" }]}>
           <ConfettiComponent />
         </View>
+
+        {showCountdownModal && (
+          <CountdownModal
+            initialDate={targetDate || new Date()}
+            onConfirm={(date) => {
+              setTargetDate(date);
+              setShowCountdownModal(false);
+            }}
+            onClose={() => setShowCountdownModal(false)}
+          />
+        )}
       </ScrollView>
     </View>
   );
 }
 
 // ====== STILI ======
-
 const styles = StyleSheet.create({
-  card: {
-    padding: 20,
-    margin: 20,
-    borderRadius: 25,
-    backgroundColor: "#ffe6f0",
-    alignSelf: "center",
-    alignItems: "center",
-    shadowColor: "rgba(255, 120, 170, 1.5)",
-    shadowOffset: { width: 0, height: 8 },
-    shadowOpacity: 2,
-    shadowRadius: 20,
-    elevation: 12,
-
-    ...(Platform.OS === "web"
-      ? {
-          boxShadow:
-            "0 0 20px 8px rgba(255,120,170,0.45), 0 0 40px 12px rgba(255,180,210,0.3)",
-        }
-      : {}),
-  },
-  helpButtonCard: {
-    position: "absolute",
-    top: -10,
-    right: -10,
-    width: 36,
-    height: 36,
-    borderRadius: 18,
-    backgroundColor: "rgba(255,120,170,0.85)",
+  container: {
+    flexGrow: 1,
     justifyContent: "center",
     alignItems: "center",
-    zIndex: 10, 
+    paddingBottom: 50,
   },
-  helpButtonText: {
-    color: "#fff",
-    fontSize: 20,
-    fontWeight: "bold",
+  card: {
+    padding: 20,
+    borderRadius: 25,
+    backgroundColor: "#ffe6f0",
+    alignItems: "center",
   },
-
-  header: {
-    textAlign: "center",
-    fontSize: 26,
-    fontWeight: "bold",
-    color: "#ff1493",
-    marginBottom: 15,
-  },
-
   input: {
     borderWidth: 2,
     borderColor: "#ff8fb7",
-    backgroundColor: "#ffc3d9",
     borderRadius: 15,
     padding: 12,
     fontSize: 18,
     marginBottom: 12,
+    width: "100%",
   },
-
-  // ====== TITOLO ======
-  confirmButton: {
-    backgroundColor: "#ff7aa2",
-    padding: 12,
-    borderRadius: 12,
-    marginTop: 8,
-  },
-
-  confirmText: {
-    color: "#fff",
-    textAlign: "center",
-    fontSize: 18,
-    fontWeight: "bold",
-  },
-
-  editButton: {
-    backgroundColor: "#ffb6d6",
-    padding: 10,
-    borderRadius: 10,
-    marginTop: 6,
-  },
-
-  editText: {
-    color: "#ff0066",
-    textAlign: "center",
-    fontSize: 16,
-    fontWeight: "bold",
-  },
-
   finalTitle: {
     fontSize: 26,
     fontWeight: "bold",
     color: "#ff1493",
     textAlign: "center",
-    marginBottom: 10,
   },
-
-  // ====== FOTO ======
+  editButton: {
+    marginTop: 6,
+  },
+  editText: {
+    color: "#ff0066",
+    fontWeight: "bold",
+  },
   photoWrapper: {
     width: 200,
     height: 200,
-    alignSelf: "center",
     borderRadius: 100,
     overflow: "hidden",
-    borderWidth: 4,
-    borderColor: "#ff8fb7",
     marginBottom: 20,
   },
-
   photo: {
     width: "100%",
     height: "100%",
   },
-
-  // ====== MESSAGGIO ======
-  message: {
-    fontSize: 16,
-    textAlign: "center",
-    backgroundColor: "#ffc3d9",
-    padding: 15,
-    borderRadius: 12,
-    marginBottom: 20,
-  },
-
-  // ====== COUNTDOWN ======
   countdownWrapper: {
     backgroundColor: "#ff1493",
-    paddingVertical: 18,
-    paddingHorizontal: 25,
+    padding: 18,
     borderRadius: 25,
-    alignItems: "center",
-    marginBottom: 25,
-    width: "100%",
-    shadowColor: "#ff1493",
-    shadowOffset: { width: 0, height: 10 },
-    shadowOpacity: 0.4,
-    shadowRadius: 25,
-    elevation: 12,
+    marginBottom: 20,
   },
-
   countdownPlaceholder: {
     color: "#fff",
-    fontSize: 18,
-    textAlign: "center",
   },
-
-  // ====== LOCATION ======
   locationRow: {
     flexDirection: "row",
-    alignItems: "center",
-    marginBottom: 20,
     width: "100%",
+    marginBottom: 20,
   },
-
   goButton: {
     backgroundColor: "#ff1493",
-    paddingHorizontal: 12,
-    paddingVertical: 12,
+    padding: 12,
     borderRadius: 12,
     marginLeft: 10,
-    marginTop: -12,
   },
-
   goText: {
     color: "#fff",
     fontWeight: "bold",
   },
-
-  // ====== SHARE ======
   shareButton: {
     backgroundColor: "#ff7aa2",
     padding: 15,
     borderRadius: 20,
   },
-
   shareText: {
-    textAlign: "center",
     color: "#fff",
-    fontSize: 18,
+    fontWeight: "bold",
+  },
+  confirmButton: {
+    backgroundColor: "#ff7aa2",
+    padding: 12,
+    borderRadius: 12,
+  },
+  confirmText: {
+    color: "#fff",
     fontWeight: "bold",
   },
 });
