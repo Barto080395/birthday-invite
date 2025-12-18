@@ -139,9 +139,9 @@ export default function Home() {
           )}
 
           {/* FOTO */}
-          <TouchableOpacity style={styles.photoWrapper} onPress={pickImage}>
+          {/*<TouchableOpacity style={styles.photoWrapper} onPress={pickImage}>
             <Image source={image} style={styles.photo} />
-          </TouchableOpacity>
+          </TouchableOpacity>*/}
 
           {/* MESSAGGIO */}
           <Text style={styles.message}>
