@@ -1,7 +1,6 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import {
   Image,
-  Linking,
   Platform,
   Text,
   TextInput,
@@ -11,12 +10,15 @@ import {
 
 import * as ImagePicker from "expo-image-picker";
 import * as Sharing from "expo-sharing";
-
+import * as Linking from "expo-linking";
 import { ConfettiComponent } from "@/components/ui/BirthdayInvite/Confetto";
 import Countdown from "@/components/ui/BirthdayInvite/Countdown";
 import OnboardingModal from "@/components/ui/BirthdayInvite/OnboardingModal";
 import { ScrollView, StyleSheet } from "react-native";
 import CountdownModal from "../modal";
+import { Invite } from "../types/Invite.types";
+import { createInvite, getInvite, updateInvite } from "../InviteService";
+
 
 export default function Home() {
   // ====== STATI ======
@@ -28,6 +30,36 @@ export default function Home() {
   const [targetDate, setTargetDate] = useState<Date | null>(null);
   const [showCountdownModal, setShowCountdownModal] = useState(false);
   const [showOnboarding, setShowOnboarding] = useState(true);
+  const [inviteId, setInviteId] = useState<string | null>(null);
+  const [currentInvite, setCurrentInvite] = useState<Invite | null>(null);
+
+
+  useEffect(() => {
+    const handleUrl = (url: string) => {
+      const { path } = Linking.parse(url);
+  
+      if (path?.startsWith("invite/")) {
+        const id = path.split("invite/")[1];
+        setInviteId(id);
+        loadInvite(id);
+      }
+    };
+  
+    // 1️⃣ App aperta
+    const subscription = Linking.addEventListener("url", ({ url }) => {
+      handleUrl(url);
+    });
+  
+    // 2️⃣ App chiusa
+    Linking.getInitialURL().then((url) => {
+      if (url) handleUrl(url);
+    });
+  
+    return () => {
+      subscription.remove();
+    };
+  }, []);
+  
 
   // ====== FUNZIONI ======
   const pickImage = async () => {
@@ -72,6 +104,40 @@ export default function Home() {
     }
   };
 
+  const saveInvite = async () => {
+    const imageUrl = image && "uri" in image ? image.uri : undefined;
+  
+    if (!inviteId) {
+      const invite = await createInvite({
+        title,
+        location,
+        targetDate: targetDate ? targetDate.toISOString() : null,
+        imageUrl,
+      });
+      setInviteId(invite._id!);
+      setCurrentInvite(invite);
+    } else {
+      const updated = await updateInvite(inviteId, {
+        title,
+        location,
+        targetDate: targetDate ? targetDate.toISOString() : null,
+        imageUrl,
+      });
+      setCurrentInvite(updated);
+    }
+  };
+
+  const loadInvite = async (id: string) => {
+    const invite = await getInvite(id);
+    if (invite) {
+      setCurrentInvite(invite);
+      setTitle(invite.title);
+      setLocation(invite.location);
+      setTargetDate(invite.targetDate ? new Date(invite.targetDate) : null);
+      // eventualmente mappa imageUrl su image.state
+    }
+  };
+  
   const editTitle = () => {
     setIsEditingTitle(true);
   };
@@ -91,22 +157,21 @@ export default function Home() {
   };
 
   const shareInvite = async () => {
-    const text = `🎉 ${title}\nTi invito alla mia festa!`;
-
-    if (Platform.OS !== "web") {
-      if ("uri" in image) {
-        await Sharing.shareAsync(image.uri, { dialogTitle: title });
-      }
-      return;
-    }
-
+    if (!inviteId) await saveInvite();
+  
+    const link = `myapp://invite/${inviteId}`; // o un link web se hai hosting backend
+  
     if (navigator.share) {
-      await navigator.share({ title, text });
+      await navigator.share({
+        title,
+        text: `🎉 ${title}\nTi invito alla mia festa!\nApri qui: ${link}`,
+      });
     } else {
-      await navigator.clipboard.writeText(text);
+      await navigator.clipboard.writeText(`🎉 ${title}\nTi invito alla mia festa!\nApri qui: ${link}`);
       alert("Invito copiato negli appunti!");
     }
   };
+  
 
   // ====== UI ======
   return (
