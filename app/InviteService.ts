@@ -1,6 +1,6 @@
 import { Invite } from "./types/Invite.types";
 
-const BASE_URL = "http://192.168.1.5:3000/api/invite";
+const BASE_URL = `${process.env.EXPO_PUBLIC_API_URL}/api/invite`;
 
 export async function createInvite(
   data: Omit<Invite, "_id" | "createdAt" | "updatedAt">

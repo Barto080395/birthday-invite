@@ -1,0 +1,6 @@
+{
+  "version": 3,
+  "sources": [],
+  "sections": [
+    {"offset": {"line": 46, "column": 0}, "map": {"version":3,"sources":["C:/Users/barto/birthday-invite/app/api/invite/route.ts"],"sourcesContent":["import { NextResponse } from \"next/server\";\r\n\r\nexport async function GET() {\r\n  return NextResponse.json({ ok: true });\r\n}\r\n"],"names":["NextResponse","GET","json","ok"],"mappings":";;;;AAAA,OAASA,YAAY,KAAQ,aAAa,CAE1C,MAAO;;AAAA,cAAe,CAAAC,GAAGA,CAAA,CAAG;IAC1B,MAAO,CAAAD,sKAAY,CAACE,IAAI,CAAC;QAAEC,EAAE,EAAE;IAAK,CAAC,CAAC;AACxC","ignoreList":[]}}]
+}
