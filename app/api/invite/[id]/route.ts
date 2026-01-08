@@ -2,32 +2,37 @@ import { NextRequest, NextResponse } from "next/server";
 import clientPromise from "@/lib/mongodb";
 import { ObjectId } from "mongodb";
 
-export async function GET(req: NextRequest) {
-  const { searchParams } = new URL(req.url);
-  const id = searchParams.get("id")!;
-  
+export async function GET(
+  _req: NextRequest,
+  { params }: { params: { id: string } }
+) {
   const client = await clientPromise;
   const db = client.db("invites");
-  const collection = db.collection("invites");
 
-  const invite = await collection.findOne({ _id: new ObjectId(id) });
+  const invite = await db
+    .collection("invites")
+    .findOne({ _id: new ObjectId(params.id) });
+
   return NextResponse.json(invite);
 }
 
-export async function PUT(req: NextRequest) {
-  const { searchParams } = new URL(req.url);
-  const id = searchParams.get("id")!;
-
+export async function PUT(
+  req: NextRequest,
+  { params }: { params: { id: string } }
+) {
   const client = await clientPromise;
   const db = client.db("invites");
-  const collection = db.collection("invites");
 
   const data = await req.json();
-  await collection.updateOne(
-    { _id: new ObjectId(id) },
+
+  await db.collection("invites").updateOne(
+    { _id: new ObjectId(params.id) },
     { $set: { ...data, updatedAt: new Date() } }
   );
 
-  const updated = await collection.findOne({ _id: new ObjectId(id) });
+  const updated = await db
+    .collection("invites")
+    .findOne({ _id: new ObjectId(params.id) });
+
   return NextResponse.json(updated);
 }
