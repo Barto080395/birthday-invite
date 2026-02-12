@@ -157,9 +157,10 @@ export default function Home() {
   };
 
   const shareInvite = async () => {
-    if (!inviteId) await saveInvite();
+    const fakeId = inviteId || "12345";
   
-    const link = `myapp://invite/${inviteId}`; // o un link web se hai hosting backend
+    const link = `https://birthday-invite-vert.vercel.app/invite/${fakeId}`;
+
   
     if (navigator.share) {
       await navigator.share({
@@ -167,10 +168,13 @@ export default function Home() {
         text: `🎉 ${title}\nTi invito alla mia festa!\nApri qui: ${link}`,
       });
     } else {
-      await navigator.clipboard.writeText(`🎉 ${title}\nTi invito alla mia festa!\nApri qui: ${link}`);
+      await navigator.clipboard.writeText(
+        `🎉 ${title}\nTi invito alla mia festa!\nApri qui: ${link}`
+      );
       alert("Invito copiato negli appunti!");
     }
   };
+  
   
 
   // ====== UI ======
