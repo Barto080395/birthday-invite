@@ -139,12 +139,10 @@ export default function Home() {
         });
       else {
         await navigator.clipboard.writeText(link);
-        alert("Invito copiato!");
         window.open(link, "_blank");
       }
     } catch (err) {
       console.error(err);
-      alert("Errore durante la condivisione.");
     }
   };
 
