@@ -102,29 +102,36 @@ export default function Home() {
   };
 
   const saveInvite = async (): Promise<string | null> => {
-    const imageUrl = image && "uri" in image ? image.uri : undefined;
-
-    if (!inviteId) {
-      const invite = await createInvite({
-        title,
-        location,
-        targetDate: targetDate ? targetDate.toISOString() : null,
-        imageUrl,
-      });
-      setInviteId(invite._id!);
-      setCurrentInvite(invite);
-      return invite._id!;
-    } else {
-      const updated = await updateInvite(inviteId, {
-        title,
-        location,
-        targetDate: targetDate ? targetDate.toISOString() : null,
-        imageUrl,
-      });
-      setCurrentInvite(updated);
-      return updated._id!;
+    try {
+      const imageUrl = image && "uri" in image ? image.uri : undefined;
+  
+      if (!inviteId) {
+        const invite = await createInvite({
+          title,
+          location,
+          targetDate: targetDate ? targetDate.toISOString() : null,
+          imageUrl,
+        });
+        setInviteId(invite._id!);
+        setCurrentInvite(invite);
+        return invite._id!;
+      } else {
+        const updated = await updateInvite(inviteId, {
+          title,
+          location,
+          targetDate: targetDate ? targetDate.toISOString() : null,
+          imageUrl,
+        });
+        setCurrentInvite(updated);
+        return updated._id!;
+      }
+    } catch (err) {
+      console.error("Errore salvataggio invito:", err);
+      alert("Errore durante il salvataggio dell'invito!");
+      return null;
     }
   };
+  
 
   const loadInvite = async (id: string) => {
     const invite = await getInvite(id);
@@ -156,32 +163,39 @@ export default function Home() {
   };
 
   const shareInvite = async () => {
-    // salva l'invito se non esiste ancora e ottieni l'id reale
-    const id = inviteId || (await saveInvite());
-
-    if (!id) {
-      alert("Errore: impossibile generare il link all'invito");
-      return;
-    }
-
-    const link = `https://birthday-invite-vert.vercel.app/invite/${id}`;
-
-    if (navigator.share) {
-      try {
-        await navigator.share({
-          title,
-          text: `🎉 ${title}\nTi invito alla mia festa!\nApri qui: ${link}`,
-        });
-      } catch (err) {
-        console.error("Errore con la condivisione:", err);
+    try {
+      // 1️⃣ Assicurati che l'invito sia salvato
+      const id = inviteId || (await saveInvite());
+  
+      if (!id) {
+        alert("Errore: impossibile generare il link all'invito");
+        return;
       }
-    } else {
-      await navigator.clipboard.writeText(link);
-      alert("Invito copiato negli appunti!");
-      // opzionale: apri il link in una nuova scheda
-      window.open(link, "_blank");
+  
+      const link = `https://birthday-invite-vert.vercel.app/invite/${id}`;
+  
+      // 2️⃣ Mobile: condivisione nativa
+      if (navigator.share) {
+        try {
+          await navigator.share({
+            title,
+            text: `🎉 ${title}\nTi invito alla mia festa!\nApri qui: ${link}`,
+          });
+        } catch (err) {
+          console.error("Errore con la condivisione:", err);
+        }
+      } else {
+        // 3️⃣ Desktop o fallback: copia negli appunti + apri link
+        await navigator.clipboard.writeText(link);
+        alert("Invito copiato negli appunti!");
+        window.open(link, "_blank");
+      }
+    } catch (err) {
+      console.error("Errore generazione link:", err);
+      alert("Si è verificato un errore durante la condivisione.");
     }
   };
+  
 
   // ====== UI ======
   return (
