@@ -58,6 +58,21 @@ export default function Home() {
     };
   }, []);
 
+  useEffect(() => {
+    if (inviteId) {
+      getInvite(inviteId).then((invite) => {
+        if (invite) {
+          setCurrentInvite(invite);
+          setTitle(invite.title);
+          setLocation(invite.location);
+          setTargetDate(invite.targetDate ? new Date(invite.targetDate) : null);
+          if (invite.imageUrl) setImage({ uri: invite.imageUrl });
+        }
+      });
+    }
+  }, [inviteId]);
+  
+
   // ====== FUNZIONI ======
   const pickImage = async () => {
     try {
@@ -106,6 +121,7 @@ export default function Home() {
       const imageUrl = image && "uri" in image ? image.uri : undefined;
   
       if (!inviteId) {
+        // Se l'invito non esiste, crealo
         const invite = await createInvite({
           title,
           location,
@@ -116,6 +132,7 @@ export default function Home() {
         setCurrentInvite(invite);
         return invite._id!;
       } else {
+        // Se l'invito esiste, aggiorna le modifiche
         const updated = await updateInvite(inviteId, {
           title,
           location,
@@ -131,6 +148,7 @@ export default function Home() {
       return null;
     }
   };
+  
   
 
   const loadInvite = async (id: string) => {
@@ -164,8 +182,8 @@ export default function Home() {
 
   const shareInvite = async () => {
     try {
-      // 1️⃣ Assicurati che l'invito sia salvato
-      const id = inviteId || (await saveInvite());
+      // Salva o aggiorna l'invito prima di generare il link
+      const id = await saveInvite();
   
       if (!id) {
         alert("Errore: impossibile generare il link all'invito");
@@ -174,27 +192,24 @@ export default function Home() {
   
       const link = `https://birthday-invite-vert.vercel.app/invite/${id}`;
   
-      // 2️⃣ Mobile: condivisione nativa
+      // Mobile: condivisione nativa
       if (navigator.share) {
-        try {
-          await navigator.share({
-            title,
-            text: `🎉 ${title}\nTi invito alla mia festa!\nApri qui: ${link}`,
-          });
-        } catch (err) {
-          console.error("Errore con la condivisione:", err);
-        }
+        await navigator.share({
+          title,
+          text: `🎉 ${title}\nTi invito alla mia festa!\nApri qui: ${link}`,
+        });
       } else {
-        // 3️⃣ Desktop o fallback: copia negli appunti + apri link
+        // Desktop: copia link + apri nuova scheda
         await navigator.clipboard.writeText(link);
         alert("Invito copiato negli appunti!");
         window.open(link, "_blank");
       }
     } catch (err) {
-      console.error("Errore generazione link:", err);
+      console.error("Errore condivisione invito:", err);
       alert("Si è verificato un errore durante la condivisione.");
     }
   };
+  
   
 
   // ====== UI ======
