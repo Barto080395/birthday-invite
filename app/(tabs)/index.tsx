@@ -6,24 +6,26 @@ import {
   TextInput,
   TouchableOpacity,
   View,
+  ScrollView,
+  StyleSheet,
 } from "react-native";
-
 import * as ImagePicker from "expo-image-picker";
-import * as Sharing from "expo-sharing";
 import * as Linking from "expo-linking";
 import { ConfettiComponent } from "@/components/ui/BirthdayInvite/Confetto";
 import Countdown from "@/components/ui/BirthdayInvite/Countdown";
 import OnboardingModal from "@/components/ui/BirthdayInvite/OnboardingModal";
-import { ScrollView, StyleSheet } from "react-native";
 import CountdownModal from "../modal";
+
+import {
+  createInvite,
+  getInvite,
+  updateInvite,
+} from "../service/InviteService";
 import { Invite } from "../types/Invite.types";
-import { createInvite, getInvite, updateInvite } from "../InviteService";
 
 export default function Home() {
-  // ====== STATI ======
   const [title, setTitle] = useState("🎉 Festa di Compleanno 🎉");
   const [isEditingTitle, setIsEditingTitle] = useState(false);
-
   const [location, setLocation] = useState("");
   const [image, setImage] = useState(require("../../assets/images/icon.jpg"));
   const [targetDate, setTargetDate] = useState<Date | null>(null);
@@ -32,124 +34,28 @@ export default function Home() {
   const [inviteId, setInviteId] = useState<string | null>(null);
   const [currentInvite, setCurrentInvite] = useState<Invite | null>(null);
 
+  // Gestione link
   useEffect(() => {
     const handleUrl = (url: string) => {
       const { path } = Linking.parse(url);
-
       if (path?.startsWith("invite/")) {
         const id = path.split("invite/")[1];
         setInviteId(id);
         loadInvite(id);
       }
     };
-
-    // 1️⃣ App aperta
-    const subscription = Linking.addEventListener("url", ({ url }) => {
-      handleUrl(url);
-    });
-
-    // 2️⃣ App chiusa
+    const subscription = Linking.addEventListener("url", ({ url }) =>
+      handleUrl(url)
+    );
     Linking.getInitialURL().then((url) => {
       if (url) handleUrl(url);
     });
-
-    return () => {
-      subscription.remove();
-    };
+    return () => subscription.remove();
   }, []);
 
   useEffect(() => {
-    if (inviteId) {
-      getInvite(inviteId).then((invite) => {
-        if (invite) {
-          setCurrentInvite(invite);
-          setTitle(invite.title);
-          setLocation(invite.location);
-          setTargetDate(invite.targetDate ? new Date(invite.targetDate) : null);
-          if (invite.imageUrl) setImage({ uri: invite.imageUrl });
-        }
-      });
-    }
+    if (inviteId) loadInvite(inviteId);
   }, [inviteId]);
-  
-
-  // ====== FUNZIONI ======
-  const pickImage = async () => {
-    try {
-      if (Platform.OS === "web") {
-        // Web: usa input type=file
-        const input = document.createElement("input");
-        input.type = "file";
-        input.accept = "image/*";
-
-        input.onchange = (e: any) => {
-          const file = e.target.files[0];
-          if (!file) return;
-
-          // Crea un URL temporaneo leggibile dal browser
-          const url = URL.createObjectURL(file);
-          setImage({ uri: url });
-
-          // Se vuoi condividere con altri, qui dovresti fare l'upload al server
-          // e poi usare l'URL pubblico restituito dal server
-        };
-
-        input.click();
-        return;
-      }
-
-      // Mobile: iOS / Android
-      const result = await ImagePicker.launchImageLibraryAsync({
-        mediaTypes: ImagePicker.MediaTypeOptions.Images,
-        quality: 1,
-      });
-
-      if (!result.canceled) {
-        setImage({ uri: result.assets[0].uri });
-
-        // Per la produzione, puoi fare anche l'upload qui
-        // e poi salvare l'URL restituito sul server / database
-      }
-    } catch (err) {
-      console.error("Errore durante la selezione immagine:", err);
-      alert("Impossibile selezionare l'immagine, riprova.");
-    }
-  };
-
-  const saveInvite = async (): Promise<string | null> => {
-    try {
-      const imageUrl = image && "uri" in image ? image.uri : undefined;
-  
-      if (!inviteId) {
-        // Se l'invito non esiste, crealo
-        const invite = await createInvite({
-          title,
-          location,
-          targetDate: targetDate ? targetDate.toISOString() : null,
-          imageUrl,
-        });
-        setInviteId(invite._id!);
-        setCurrentInvite(invite);
-        return invite._id!;
-      } else {
-        // Se l'invito esiste, aggiorna le modifiche
-        const updated = await updateInvite(inviteId, {
-          title,
-          location,
-          targetDate: targetDate ? targetDate.toISOString() : null,
-          imageUrl,
-        });
-        setCurrentInvite(updated);
-        return updated._id!;
-      }
-    } catch (err) {
-      console.error("Errore salvataggio invito:", err);
-      alert("Errore durante il salvataggio dell'invito!");
-      return null;
-    }
-  };
-  
-  
 
   const loadInvite = async (id: string) => {
     const invite = await getInvite(id);
@@ -158,74 +64,116 @@ export default function Home() {
       setTitle(invite.title);
       setLocation(invite.location);
       setTargetDate(invite.targetDate ? new Date(invite.targetDate) : null);
-      // eventualmente mappa imageUrl su image.state
     }
   };
 
-  const editTitle = () => {
-    setIsEditingTitle(true);
+  const pickImage = async () => {
+    try {
+      if (Platform.OS === "web") {
+        const input = document.createElement("input");
+        input.type = "file";
+        input.accept = "image/*";
+        input.onchange = (e: any) => {
+          const file = e.target.files[0];
+          if (!file) return;
+          setImage({ uri: URL.createObjectURL(file) });
+        };
+        input.click();
+        return;
+      }
+      const result = await ImagePicker.launchImageLibraryAsync({
+        mediaTypes: ImagePicker.MediaTypeOptions.Images,
+        quality: 1,
+      });
+      if (!result.canceled) setImage({ uri: result.assets[0].uri });
+    } catch (err) {
+      console.error(err);
+      alert("Impossibile selezionare l'immagine.");
+    }
   };
 
+  const saveInviteFirebase = async (): Promise<string | null> => {
+    try {
+      // Trasforma `null` in `undefined` per Firebase Service
+      const target = targetDate ? targetDate.toISOString() : undefined;
+
+      let invite: Invite;
+      const imageFile =
+        image && "uri" in image
+          ? await (await fetch(image.uri)).blob()
+          : undefined;
+
+      if (!inviteId) {
+        invite = await createInvite({
+          title,
+          location,
+          targetDate: target, // ✅ ora è string | undefined
+        });
+        setInviteId(invite._id || null);
+      } else {
+        invite = await updateInvite(inviteId, {
+          title,
+          location,
+          targetDate: target, // ✅ string | undefined
+        });
+      }
+
+      setCurrentInvite(invite);
+      return invite._id || null;
+    } catch (err) {
+      console.error(err);
+      alert("Errore salvataggio invito!");
+      return null;
+    }
+  };
+
+  const shareInvite = async () => {
+    const id = await saveInviteFirebase();
+    if (!id) return;
+    const link = `https://birthday-invite-vert.vercel.app/invite/${id}`;
+    try {
+      if (navigator.share)
+        await navigator.share({
+          title,
+          text: `🎉 ${title}\nApri qui: ${link}`,
+        });
+      else {
+        await navigator.clipboard.writeText(link);
+        alert("Invito copiato!");
+        window.open(link, "_blank");
+      }
+    } catch (err) {
+      console.error(err);
+      alert("Errore durante la condivisione.");
+    }
+  };
+
+  const editTitle = () => setIsEditingTitle(true);
   const confirmTitle = (newTitle: string) => {
     if (newTitle.trim()) {
       setTitle(newTitle);
       setIsEditingTitle(false);
     }
   };
-
   const openLocation = () => {
     if (!location.trim()) return;
-
-    const url = `https://www.google.com/maps?q=${encodeURIComponent(location)}`;
-    Linking.openURL(url);
+    Linking.openURL(
+      `https://www.google.com/maps?q=${encodeURIComponent(location)}`
+    );
   };
 
-  const shareInvite = async () => {
-    try {
-      // Salva o aggiorna l'invito prima di generare il link
-      const id = await saveInvite();
-  
-      if (!id) {
-        alert("Errore: impossibile generare il link all'invito");
-        return;
-      }
-  
-      const link = `https://birthday-invite-vert.vercel.app/invite/${id}`;
-  
-      // Mobile: condivisione nativa
-      if (navigator.share) {
-        await navigator.share({
-          title,
-          text: `🎉 ${title}\nTi invito alla mia festa!\nApri qui: ${link}`,
-        });
-      } else {
-        // Desktop: copia link + apri nuova scheda
-        await navigator.clipboard.writeText(link);
-        alert("Invito copiato negli appunti!");
-        window.open(link, "_blank");
-      }
-    } catch (err) {
-      console.error("Errore condivisione invito:", err);
-      alert("Si è verificato un errore durante la condivisione.");
-    }
-  };
-  
-  
-
-  // ====== UI ======
   return (
     <View style={{ flex: 1 }}>
       <OnboardingModal
         visible={showOnboarding}
         onClose={() => setShowOnboarding(false)}
       />
-
       <ScrollView
         style={{ backgroundColor: "#ffbfd6", flex: 1 }}
         contentContainerStyle={{
-          flexGrow: 1, // permette al contenuto di occupare tutto lo spazio
-          justifyContent: "center", // centra verticalmente
-          alignItems: "center", // centra orizzontalmente
+          flexGrow: 1,
+          justifyContent: "center",
+          alignItems: "center",
           paddingBottom: 50,
         }}
       >
@@ -236,7 +184,7 @@ export default function Home() {
           >
             <Text style={styles.helpButtonText}>?</Text>
           </TouchableOpacity>
-          {/* TITOLO */}
+
           {isEditingTitle ? (
             <View style={{ width: "100%", marginBottom: 18 }}>
               <TextInput
@@ -260,18 +208,14 @@ export default function Home() {
             </View>
           )}
 
-          {/* FOTO */}
           <TouchableOpacity style={styles.photoWrapper} onPress={pickImage}>
             <Image source={image} style={styles.photo} />
           </TouchableOpacity>
-
-          {/* MESSAGGIO */}
           <Text style={styles.message}>
             Vuoi venire alla festa? 🎂 Sarà una giornata fantastica, ti aspetto!
             ✨
           </Text>
 
-          {/* COUNTDOWN */}
           <TouchableOpacity
             style={styles.countdownWrapper}
             onPress={() => setShowCountdownModal(true)}
@@ -285,7 +229,6 @@ export default function Home() {
             )}
           </TouchableOpacity>
 
-          {/* LOCATION */}
           <View style={styles.locationRow}>
             <TextInput
               placeholder="Inserisci la location"
@@ -298,12 +241,10 @@ export default function Home() {
             </TouchableOpacity>
           </View>
 
-          {/* SHARE */}
           <TouchableOpacity style={styles.shareButton} onPress={shareInvite}>
             <Text style={styles.shareText}>Condividi Invito</Text>
           </TouchableOpacity>
 
-          {/* MODALE COUNTDOWN */}
           {showCountdownModal && (
             <CountdownModal
               initialDate={targetDate || new Date()}
@@ -315,7 +256,6 @@ export default function Home() {
             />
           )}
         </View>
-
         <View style={[StyleSheet.absoluteFill, { pointerEvents: "none" }]}>
           <ConfettiComponent />
         </View>
@@ -323,8 +263,6 @@ export default function Home() {
     </View>
   );
 }
-
-// ====== STILI ======
 
 const styles = StyleSheet.create({
   card: {
@@ -339,7 +277,6 @@ const styles = StyleSheet.create({
     shadowOpacity: 2,
     shadowRadius: 20,
     elevation: 12,
-
     ...(Platform.OS === "web"
       ? {
           boxShadow:
@@ -359,12 +296,7 @@ const styles = StyleSheet.create({
     alignItems: "center",
     zIndex: 10,
   },
-  helpButtonText: {
-    color: "#fff",
-    fontSize: 20,
-    fontWeight: "bold",
-  },
-
+  helpButtonText: { color: "#fff", fontSize: 20, fontWeight: "bold" },
   header: {
     textAlign: "center",
     fontSize: 26,
@@ -372,7 +304,6 @@ const styles = StyleSheet.create({
     color: "#ff1493",
     marginBottom: 15,
   },
-
   input: {
     borderWidth: 2,
     borderColor: "#ff8fb7",
@@ -381,46 +312,38 @@ const styles = StyleSheet.create({
     padding: 12,
     fontSize: 18,
     marginBottom: 12,
-  },
-
-  // ====== TITOLO ======
+  }, // ====== TITOLO ======
   confirmButton: {
     backgroundColor: "#ff7aa2",
     padding: 12,
     borderRadius: 12,
     marginTop: 8,
   },
-
   confirmText: {
     color: "#fff",
     textAlign: "center",
     fontSize: 18,
     fontWeight: "bold",
   },
-
   editButton: {
     backgroundColor: "#ffb6d6",
     padding: 10,
     borderRadius: 10,
     marginTop: 6,
   },
-
   editText: {
     color: "#ff0066",
     textAlign: "center",
     fontSize: 16,
     fontWeight: "bold",
   },
-
   finalTitle: {
     fontSize: 26,
     fontWeight: "bold",
     color: "#ff1493",
     textAlign: "center",
     marginBottom: 10,
-  },
-
-  // ====== FOTO ======
+  }, // ====== FOTO ======
   photoWrapper: {
     width: 200,
     height: 200,
@@ -431,13 +354,7 @@ const styles = StyleSheet.create({
     borderColor: "#ff8fb7",
     marginBottom: 20,
   },
-
-  photo: {
-    width: "100%",
-    height: "100%",
-  },
-
-  // ====== MESSAGGIO ======
+  photo: { width: "100%", height: "100%" }, // ====== MESSAGGIO ======
   message: {
     fontSize: 16,
     textAlign: "center",
@@ -445,9 +362,7 @@ const styles = StyleSheet.create({
     padding: 15,
     borderRadius: 12,
     marginBottom: 20,
-  },
-
-  // ====== COUNTDOWN ======
+  }, // ====== COUNTDOWN ======
   countdownWrapper: {
     backgroundColor: "#ff1493",
     paddingVertical: 18,
@@ -462,21 +377,13 @@ const styles = StyleSheet.create({
     shadowRadius: 25,
     elevation: 12,
   },
-
-  countdownPlaceholder: {
-    color: "#fff",
-    fontSize: 18,
-    textAlign: "center",
-  },
-
-  // ====== LOCATION ======
+  countdownPlaceholder: { color: "#fff", fontSize: 18, textAlign: "center" }, // ====== LOCATION ======
   locationRow: {
     flexDirection: "row",
     alignItems: "center",
     marginBottom: 20,
     width: "100%",
   },
-
   goButton: {
     backgroundColor: "#ff1493",
     paddingHorizontal: 12,
@@ -485,19 +392,8 @@ const styles = StyleSheet.create({
     marginLeft: 10,
     marginTop: -12,
   },
-
-  goText: {
-    color: "#fff",
-    fontWeight: "bold",
-  },
-
-  // ====== SHARE ======
-  shareButton: {
-    backgroundColor: "#ff7aa2",
-    padding: 15,
-    borderRadius: 20,
-  },
-
+  goText: { color: "#fff", fontWeight: "bold" }, // ====== SHARE ======
+  shareButton: { backgroundColor: "#ff7aa2", padding: 15, borderRadius: 20 },
   shareText: {
     textAlign: "center",
     color: "#fff",
