@@ -1,20 +1,13 @@
+// app/invite/[id]/page.tsx
 import { getInvite } from "@/app/service/InviteService";
-import { Invite } from "@/app/types/Invite.types";
-import { useRouter } from "next/router";
-import { useEffect, useState } from "react";
 
-export default function InvitePage() {
-  const router = useRouter();
-  const { id } = router.query;
+interface InvitePageProps {
+  params: { id: string };
+}
 
-  const [invite, setInvite] = useState<Invite | null>(null);
-
-  useEffect(() => {
-    if (!id) return;
-    getInvite(id as string).then(setInvite);
-  }, [id]);
-
-  if (!invite) return <p>Caricamento...</p>;
+export default async function InvitePage({ params }: InvitePageProps) {
+  const invite = await getInvite(params.id);
+  if (!invite) return <p>Invito non trovato</p>;
 
   return (
     <div>
