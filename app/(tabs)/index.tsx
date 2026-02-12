@@ -1,4 +1,4 @@
-/*import React, { useEffect, useState } from "react";
+import React, { useEffect, useState } from "react";
 import {
   Image,
   Platform,
@@ -398,4 +398,4 @@ const styles = StyleSheet.create({
     fontSize: 18,
     fontWeight: "bold",
   },
-});*/
+});
