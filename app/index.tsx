@@ -14,20 +14,20 @@ import * as Linking from "expo-linking";
 import { ConfettiComponent } from "@/components/ui/BirthdayInvite/Confetto";
 import Countdown from "@/components/ui/BirthdayInvite/Countdown";
 import OnboardingModal from "@/components/ui/BirthdayInvite/OnboardingModal";
-import CountdownModal from "../modal";
+import CountdownModal from "./modal";
 
 import {
   createInvite,
   getInvite,
   updateInvite,
-} from "../service/InviteService";
-import { Invite } from "../types/Invite.types";
+} from "./service/InviteService";
+import { Invite } from "./types/Invite.types";
 
 export default function Home() {
   const [title, setTitle] = useState("🎉 Festa di Compleanno 🎉");
   const [isEditingTitle, setIsEditingTitle] = useState(false);
   const [location, setLocation] = useState("");
-  const [image, setImage] = useState(require("../../assets/images/icon.jpg"));
+  const [image, setImage] = useState(require("../assets/images/icon.jpg"));
   const [targetDate, setTargetDate] = useState<Date | null>(null);
   const [showCountdownModal, setShowCountdownModal] = useState(false);
   const [showOnboarding, setShowOnboarding] = useState(true);
