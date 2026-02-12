@@ -19,7 +19,6 @@ import CountdownModal from "../modal";
 import { Invite } from "../types/Invite.types";
 import { createInvite, getInvite, updateInvite } from "../InviteService";
 
-
 export default function Home() {
   // ====== STATI ======
   const [title, setTitle] = useState("🎉 Festa di Compleanno 🎉");
@@ -33,33 +32,31 @@ export default function Home() {
   const [inviteId, setInviteId] = useState<string | null>(null);
   const [currentInvite, setCurrentInvite] = useState<Invite | null>(null);
 
-
   useEffect(() => {
     const handleUrl = (url: string) => {
       const { path } = Linking.parse(url);
-  
+
       if (path?.startsWith("invite/")) {
         const id = path.split("invite/")[1];
         setInviteId(id);
         loadInvite(id);
       }
     };
-  
+
     // 1️⃣ App aperta
     const subscription = Linking.addEventListener("url", ({ url }) => {
       handleUrl(url);
     });
-  
+
     // 2️⃣ App chiusa
     Linking.getInitialURL().then((url) => {
       if (url) handleUrl(url);
     });
-  
+
     return () => {
       subscription.remove();
     };
   }, []);
-  
 
   // ====== FUNZIONI ======
   const pickImage = async () => {
@@ -104,9 +101,9 @@ export default function Home() {
     }
   };
 
-  const saveInvite = async () => {
+  const saveInvite = async (): Promise<string | null> => {
     const imageUrl = image && "uri" in image ? image.uri : undefined;
-  
+
     if (!inviteId) {
       const invite = await createInvite({
         title,
@@ -116,6 +113,7 @@ export default function Home() {
       });
       setInviteId(invite._id!);
       setCurrentInvite(invite);
+      return invite._id!;
     } else {
       const updated = await updateInvite(inviteId, {
         title,
@@ -124,6 +122,7 @@ export default function Home() {
         imageUrl,
       });
       setCurrentInvite(updated);
+      return updated._id!;
     }
   };
 
@@ -137,7 +136,7 @@ export default function Home() {
       // eventualmente mappa imageUrl su image.state
     }
   };
-  
+
   const editTitle = () => {
     setIsEditingTitle(true);
   };
@@ -157,27 +156,32 @@ export default function Home() {
   };
 
   const shareInvite = async () => {
-    if (!inviteId) {
-      await saveInvite();
+    // salva l'invito se non esiste ancora e ottieni l'id reale
+    const id = inviteId || (await saveInvite());
+
+    if (!id) {
+      alert("Errore: impossibile generare il link all'invito");
+      return;
     }
-  
-    const link = `https://birthday-invite-vert.vercel.app/invite/${inviteId}`;
-  
+
+    const link = `https://birthday-invite-vert.vercel.app/invite/${id}`;
+
     if (navigator.share) {
-      await navigator.share({
-        title,
-        text: `🎉 ${title}\nTi invito alla mia festa!\nApri qui: ${link}`,
-      });
+      try {
+        await navigator.share({
+          title,
+          text: `🎉 ${title}\nTi invito alla mia festa!\nApri qui: ${link}`,
+        });
+      } catch (err) {
+        console.error("Errore con la condivisione:", err);
+      }
     } else {
-      // Desktop: copia e apri link
       await navigator.clipboard.writeText(link);
       alert("Invito copiato negli appunti!");
+      // opzionale: apri il link in una nuova scheda
       window.open(link, "_blank");
     }
   };
-  
-  
-  
 
   // ====== UI ======
   return (
