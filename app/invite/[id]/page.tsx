@@ -1,19 +1,20 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { useRouter } from "next/router";
 import { getInvite } from "@/app/service/InviteService";
 import { Invite } from "@/app/types/Invite.types";
 
-interface InvitePageProps {
-  params: { id: string };
-}
+export default function InvitePage() {
+  const router = useRouter();        // ← qui lo metti all’inizio del componente
+  const { id } = router.query;       // ← estrai l’ID dalla query
 
-export default function InvitePage({ params }: InvitePageProps) {
   const [invite, setInvite] = useState<Invite | null>(null);
 
   useEffect(() => {
-    getInvite(params.id).then(setInvite);
-  }, [params.id]);
+    if (!id) return;                 // aspetta che id sia disponibile
+    getInvite(id as string).then(setInvite);
+  }, [id]);
 
   if (!invite) return <p>Caricamento...</p>;
 
@@ -22,11 +23,6 @@ export default function InvitePage({ params }: InvitePageProps) {
       <h1>{invite.title}</h1>
       <p>📍 {invite.location}</p>
       <p>📅 {invite.targetDate ? new Date(invite.targetDate).toLocaleDateString() : "Data non impostata"}</p>
-      {invite.imageUrl ? (
-        <img src={invite.imageUrl} alt="Invito" style={{ width: 200, borderRadius: 12, marginTop: 20 }} />
-      ) : (
-        <img src="/assets/images/icon.jpg" alt="Invito default" style={{ width: 200, borderRadius: 12, marginTop: 20 }} />
-      )}
     </div>
   );
 }
