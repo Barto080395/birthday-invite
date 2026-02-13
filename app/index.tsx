@@ -26,7 +26,7 @@ export default function Home() {
     "Vuoi venire alla festa? 🎂 Sarà una giornata fantastica, ti aspetto! ✨"
   );
   const [location, setLocation] = useState("");
-  const [image, setImage] = useState(require("../assets/images/icon.jpg"));
+  const [image, setImage] = useState(require("../assets/images/Amore.png"));
   const [targetDate, setTargetDate] = useState<Date | null>(null);
   const [showCountdownModal, setShowCountdownModal] = useState(false);
   const [showOnboarding, setShowOnboarding] = useState(true);
@@ -40,20 +40,19 @@ export default function Home() {
     const url = window.location.href;
     const query = new URL(url).searchParams;
     const id = query.get("id");
-  
+
     if (id) {
-      setLoading(true);      // 👈 ATTIVA loader
+      setLoading(true); // 👈 ATTIVA loader
       setInviteId(id);
       setIsOwner(false);
-  
+
       loadInvite(id).finally(() => {
-        setLoading(false);   // 👈 DISATTIVA loader
+        setLoading(false); // 👈 DISATTIVA loader
       });
     } else {
       setIsOwner(true);
     }
   }, []);
-  
 
   const loadInvite = async (id: string) => {
     const invite = await getInvite(id);
@@ -189,12 +188,14 @@ export default function Home() {
         }}
       >
         <View style={styles.card}>
-          <TouchableOpacity
-            style={styles.helpButtonCard}
-            onPress={() => setShowOnboarding(true)}
-          >
-            <Text style={styles.helpButtonText}>?</Text>
-          </TouchableOpacity>
+          {isOwner && (
+            <TouchableOpacity
+              style={styles.helpButtonCard}
+              onPress={() => setShowOnboarding(true)}
+            >
+              <Text style={styles.helpButtonText}>?</Text>
+            </TouchableOpacity>
+          )}
 
           {/* Titolo modificabile */}
           {isOwner ? (

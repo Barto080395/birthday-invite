@@ -99,7 +99,7 @@ const Confetto: React.FC<ConfettoProps> = ({ left, delay, size, content }) => {
 // --- Componente Contenitore Principale (Invariato) ---
 export const ConfettiComponent = () => {
   const confettiCount = 30;
-  const content = "🌸";
+  const content = "❤️";
 
   const confettiArray = useMemo(
     () =>
