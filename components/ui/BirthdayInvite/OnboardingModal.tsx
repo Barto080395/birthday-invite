@@ -23,17 +23,17 @@ export default function OnboardingModal({ visible, onClose }: Props) {
             Tocca il cerchio foto per caricare l'immagine dell'invito.
           </Text>
 
-          <Text style={styles.rowTitle}>1. Aggiungi un Message</Text>
+          <Text style={styles.rowTitle}>3. Aggiungi un Message</Text>
           <Text style={styles.rowText}>
             Inserisci un messaggio al tuo Invito".
           </Text>
 
-          <Text style={styles.rowTitle}>3. Imposta data</Text>
+          <Text style={styles.rowTitle}>4. Imposta data</Text>
           <Text style={styles.rowText}>
             Tocca il countdown per selezionare data e ora (deve essere futura).
           </Text>
 
-          <Text style={styles.rowTitle}>4. Condividi</Text>
+          <Text style={styles.rowTitle}>5. Condividi</Text>
           <Text style={styles.rowText}>
             Usa "Condividi invito" per mandarlo ai tuoi amici o salvarlo.
           </Text>

@@ -173,8 +173,10 @@ export default function Home() {
           </TouchableOpacity>
 
           {/* Titolo modificabile */}
-          {isOwner && (
-          <EditableText title={title} onChangeTitle={setTitle} />
+          {isOwner ? (
+            <EditableText title={title} onChangeTitle={setTitle} />
+          ) : (
+            <Text style={styles.finalTitle}>{title}</Text>
           )}
           {/* Foto */}
           <TouchableOpacity style={styles.photoWrapper} onPress={pickImage}>
@@ -182,12 +184,14 @@ export default function Home() {
           </TouchableOpacity>
 
           {/* Messaggio modificabile */}
-          {isOwner && (
-          <EditableText
-            message={message}
-            onChangeMessage={setMessage}
-            placeholder="Scrivi un messaggio speciale..."
-          />
+          {isOwner ? (
+            <EditableText
+              message={message}
+              onChangeMessage={setMessage}
+              placeholder="Scrivi un messaggio speciale..."
+            />
+          ) : (
+            <Text style={styles.message}>{message}</Text>
           )}
 
           {/* Countdown */}
@@ -219,9 +223,9 @@ export default function Home() {
 
           {/* Condivisione */}
           {isOwner && (
-          <TouchableOpacity style={styles.shareButton} onPress={shareInvite}>
-            <Text style={styles.shareText}>Condividi Invito</Text>
-          </TouchableOpacity>
+            <TouchableOpacity style={styles.shareButton} onPress={shareInvite}>
+              <Text style={styles.shareText}>Condividi Invito</Text>
+            </TouchableOpacity>
           )}
 
           {showCountdownModal && (
