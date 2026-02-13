@@ -34,38 +34,26 @@ export default function Home() {
   const [inviteId, setInviteId] = useState<string | null>(null);
   const [currentInvite, setCurrentInvite] = useState<Invite | null>(null);
 
-  // Gestione link
-  useEffect(() => {
-    const handleUrl = (url: string) => {
-      const { path } = Linking.parse(url);
-      if (path?.startsWith("invite/")) {
-        const id = path.split("invite/")[1];
-        setInviteId(id);
-        loadInvite(id);
-      }
-    };
-    const subscription = Linking.addEventListener("url", ({ url }) =>
-      handleUrl(url)
-    );
-    Linking.getInitialURL().then((url) => {
-      if (url) handleUrl(url);
-    });
-    return () => subscription.remove();
-  }, []);
+ // Carica ID dalla query string (statico)
+ useEffect(() => {
+  const url = window.location.href;
+  const query = new URL(url).searchParams;
+  const id = query.get("id");
+  if (id) {
+    setInviteId(id);
+    loadInvite(id);
+  }
+}, []);
 
-  useEffect(() => {
-    if (inviteId) loadInvite(inviteId);
-  }, [inviteId]);
-
-  const loadInvite = async (id: string) => {
-    const invite = await getInvite(id);
-    if (invite) {
-      setCurrentInvite(invite);
-      setTitle(invite.title);
-      setLocation(invite.location);
-      setTargetDate(invite.targetDate ? new Date(invite.targetDate) : null);
-    }
-  };
+const loadInvite = async (id: string) => {
+  const invite = await getInvite(id);
+  if (invite) {
+    setCurrentInvite(invite);
+    setTitle(invite.title);
+    setLocation(invite.location);
+    setTargetDate(invite.targetDate ? new Date(invite.targetDate) : null);
+  }
+};
 
   const pickImage = async () => {
     try {
@@ -130,7 +118,7 @@ export default function Home() {
   const shareInvite = async () => {
     const id = await saveInviteFirebase();
     if (!id) return;
-    const link = `https://birthday-invite-vert.vercel.app/invite/${id}`;
+    const link = `https://birthday-invite-vert.vercel.app/?id=${id}`; // ✅ query string
     try {
       if (navigator.share)
         await navigator.share({
