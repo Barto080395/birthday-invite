@@ -1,11 +1,5 @@
 import React from "react";
-import {
-    Modal,
-    StyleSheet,
-    Text,
-    TouchableOpacity,
-    View
-} from "react-native";
+import { Modal, StyleSheet, Text, TouchableOpacity, View } from "react-native";
 
 interface Props {
   visible: boolean;
@@ -20,22 +14,37 @@ export default function OnboardingModal({ visible, onClose }: Props) {
           <Text style={styles.title}>Benvenuto in Birthday Invite 🎉</Text>
 
           <Text style={styles.rowTitle}>1. Aggiungi il titolo</Text>
-          <Text style={styles.rowText}>Dai un nome speciale alla tua festa — es. "Compleanno di Sara".</Text>
+          <Text style={styles.rowText}>
+            Dai un nome speciale alla tua festa — es. "Compleanno di Sara".
+          </Text>
 
           <Text style={styles.rowTitle}>2. Scegli una foto</Text>
-          <Text style={styles.rowText}>Tocca il cerchio foto per caricare l'immagine dell'invito.</Text>
+          <Text style={styles.rowText}>
+            Tocca il cerchio foto per caricare l'immagine dell'invito.
+          </Text>
+
+          <Text style={styles.rowTitle}>1. Aggiungi un Message</Text>
+          <Text style={styles.rowText}>
+            Inserisci un messaggio al tuo Invito".
+          </Text>
 
           <Text style={styles.rowTitle}>3. Imposta data</Text>
-          <Text style={styles.rowText}>Tocca il countdown per selezionare data e ora (deve essere futura).</Text>
+          <Text style={styles.rowText}>
+            Tocca il countdown per selezionare data e ora (deve essere futura).
+          </Text>
 
           <Text style={styles.rowTitle}>4. Condividi</Text>
-          <Text style={styles.rowText}>Usa "Condividi invito" per mandarlo ai tuoi amici o salvarlo.</Text>
+          <Text style={styles.rowText}>
+            Usa "Condividi invito" per mandarlo ai tuoi amici o salvarlo.
+          </Text>
 
           <TouchableOpacity onPress={onClose} style={styles.button}>
             <Text style={styles.buttonText}>Ho capito — Inizia!</Text>
           </TouchableOpacity>
 
-          <Text style={styles.footer}>Puoi riaprire questa guida da Impostazioni.</Text>
+          <Text style={styles.footer}>
+            Puoi riaprire questa guida da Impostazioni.
+          </Text>
         </View>
       </View>
     </Modal>

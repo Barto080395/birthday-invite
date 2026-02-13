@@ -15,17 +15,15 @@ import { ConfettiComponent } from "@/components/ui/BirthdayInvite/Confetto";
 import Countdown from "@/components/ui/BirthdayInvite/Countdown";
 import OnboardingModal from "@/components/ui/BirthdayInvite/OnboardingModal";
 import CountdownModal from "./modal";
-
-import {
-  createInvite,
-  getInvite,
-  updateInvite,
-} from "./service/InviteService";
+import { createInvite, getInvite, updateInvite } from "./service/InviteService";
 import { Invite } from "./types/Invite.types";
+import { EditableText } from "@/components/ui/BirthdayInvite/EditableText";
 
 export default function Home() {
   const [title, setTitle] = useState("🎉 Festa di Compleanno 🎉");
-  const [isEditingTitle, setIsEditingTitle] = useState(false);
+  const [message, setMessage] = useState(
+    "Vuoi venire alla festa? 🎂 Sarà una giornata fantastica, ti aspetto! ✨"
+  );
   const [location, setLocation] = useState("");
   const [image, setImage] = useState(require("../assets/images/icon.jpg"));
   const [targetDate, setTargetDate] = useState<Date | null>(null);
@@ -33,27 +31,33 @@ export default function Home() {
   const [showOnboarding, setShowOnboarding] = useState(true);
   const [inviteId, setInviteId] = useState<string | null>(null);
   const [currentInvite, setCurrentInvite] = useState<Invite | null>(null);
+  const [isOwner, setIsOwner] = useState(true);
+  // Carica ID dalla query string (statico)
 
- // Carica ID dalla query string (statico)
- useEffect(() => {
-  const url = window.location.href;
-  const query = new URL(url).searchParams;
-  const id = query.get("id");
-  if (id) {
-    setInviteId(id);
-    loadInvite(id);
-  }
-}, []);
+  useEffect(() => {
+    const url = window.location.href;
+    const query = new URL(url).searchParams;
+    const id = query.get("id");
 
-const loadInvite = async (id: string) => {
-  const invite = await getInvite(id);
-  if (invite) {
-    setCurrentInvite(invite);
-    setTitle(invite.title);
-    setLocation(invite.location);
-    setTargetDate(invite.targetDate ? new Date(invite.targetDate) : null);
-  }
-};
+    if (id) {
+      setInviteId(id);
+      loadInvite(id);
+      setIsOwner(false); // chi riceve il link non può modificare
+    } else {
+      setIsOwner(true); // chi crea/modifica l’invito
+    }
+  }, []);
+
+  const loadInvite = async (id: string) => {
+    const invite = await getInvite(id);
+    if (invite) {
+      setCurrentInvite(invite);
+      setTitle(invite.title);
+      setMessage(invite.message);
+      setLocation(invite.location);
+      setTargetDate(invite.targetDate ? new Date(invite.targetDate) : null);
+    }
+  };
 
   const pickImage = async () => {
     try {
@@ -94,6 +98,7 @@ const loadInvite = async (id: string) => {
       if (!inviteId) {
         invite = await createInvite({
           title,
+          message,
           location,
           targetDate: target, // ✅ ora è string | undefined
         });
@@ -101,6 +106,7 @@ const loadInvite = async (id: string) => {
       } else {
         invite = await updateInvite(inviteId, {
           title,
+          message,
           location,
           targetDate: target, // ✅ string | undefined
         });
@@ -134,13 +140,6 @@ const loadInvite = async (id: string) => {
     }
   };
 
-  const editTitle = () => setIsEditingTitle(true);
-  const confirmTitle = (newTitle: string) => {
-    if (newTitle.trim()) {
-      setTitle(newTitle);
-      setIsEditingTitle(false);
-    }
-  };
   const openLocation = () => {
     if (!location.trim()) return;
     Linking.openURL(
@@ -150,10 +149,12 @@ const loadInvite = async (id: string) => {
 
   return (
     <View style={{ flex: 1 }}>
-      <OnboardingModal
-        visible={showOnboarding}
-        onClose={() => setShowOnboarding(false)}
-      />
+      {isOwner && (
+        <OnboardingModal
+          visible={showOnboarding}
+          onClose={() => setShowOnboarding(false)}
+        />
+      )}
       <ScrollView
         style={{ backgroundColor: "#ffbfd6", flex: 1 }}
         contentContainerStyle={{
@@ -171,37 +172,25 @@ const loadInvite = async (id: string) => {
             <Text style={styles.helpButtonText}>?</Text>
           </TouchableOpacity>
 
-          {isEditingTitle ? (
-            <View style={{ width: "100%", marginBottom: 18 }}>
-              <TextInput
-                value={title}
-                onChangeText={setTitle}
-                style={styles.input}
-              />
-              <TouchableOpacity
-                style={styles.confirmButton}
-                onPress={() => confirmTitle(title)}
-              >
-                <Text style={styles.confirmText}>Conferma</Text>
-              </TouchableOpacity>
-            </View>
-          ) : (
-            <View style={{ width: "100%", marginBottom: 18 }}>
-              <Text style={styles.finalTitle}>{title}</Text>
-              <TouchableOpacity style={styles.editButton} onPress={editTitle}>
-                <Text style={styles.editText}>Modifica 🖋️</Text>
-              </TouchableOpacity>
-            </View>
+          {/* Titolo modificabile */}
+          {isOwner && (
+          <EditableText title={title} onChangeTitle={setTitle} />
           )}
-
+          {/* Foto */}
           <TouchableOpacity style={styles.photoWrapper} onPress={pickImage}>
             <Image source={image} style={styles.photo} />
           </TouchableOpacity>
-          <Text style={styles.message}>
-            Vuoi venire alla festa? 🎂 Sarà una giornata fantastica, ti aspetto!
-            ✨
-          </Text>
 
+          {/* Messaggio modificabile */}
+          {isOwner && (
+          <EditableText
+            message={message}
+            onChangeMessage={setMessage}
+            placeholder="Scrivi un messaggio speciale..."
+          />
+          )}
+
+          {/* Countdown */}
           <TouchableOpacity
             style={styles.countdownWrapper}
             onPress={() => setShowCountdownModal(true)}
@@ -215,6 +204,7 @@ const loadInvite = async (id: string) => {
             )}
           </TouchableOpacity>
 
+          {/* Location */}
           <View style={styles.locationRow}>
             <TextInput
               placeholder="Inserisci la location"
@@ -227,9 +217,12 @@ const loadInvite = async (id: string) => {
             </TouchableOpacity>
           </View>
 
+          {/* Condivisione */}
+          {isOwner && (
           <TouchableOpacity style={styles.shareButton} onPress={shareInvite}>
             <Text style={styles.shareText}>Condividi Invito</Text>
           </TouchableOpacity>
+          )}
 
           {showCountdownModal && (
             <CountdownModal
@@ -242,6 +235,7 @@ const loadInvite = async (id: string) => {
             />
           )}
         </View>
+
         <View style={[StyleSheet.absoluteFill, { pointerEvents: "none" }]}>
           <ConfettiComponent />
         </View>

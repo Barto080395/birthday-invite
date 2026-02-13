@@ -8,6 +8,7 @@ const invitesCollection = collection(db, "invites");
 // CREA INVITO
 export async function createInvite(data: {
   title: string;
+  message: string;
   location: string;
   targetDate?: string;
 }): Promise<Invite> {
@@ -16,6 +17,7 @@ export async function createInvite(data: {
   const inviteData: Invite = {
     _id: docRef.id,
     title: data.title,
+    message: data.message,
     location: data.location,
     targetDate: data.targetDate || null,
     createdAt: new Date().toISOString(),
@@ -31,6 +33,7 @@ export async function updateInvite(
   id: string,
   data: {
     title?: string;
+    message?: string;
     location?: string;
     targetDate?: string;
   }
