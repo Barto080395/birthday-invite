@@ -18,6 +18,7 @@ import CountdownModal from "./modal";
 import { createInvite, getInvite, updateInvite } from "./service/InviteService";
 import { Invite } from "./types/Invite.types";
 import { EditableText } from "@/components/ui/BirthdayInvite/EditableText";
+import { Loader } from "@/components/ui/BirthdayInvite/Loader";
 
 export default function Home() {
   const [title, setTitle] = useState("🎉 Festa di Compleanno 🎉");
@@ -32,6 +33,7 @@ export default function Home() {
   const [inviteId, setInviteId] = useState<string | null>(null);
   const [currentInvite, setCurrentInvite] = useState<Invite | null>(null);
   const [isOwner, setIsOwner] = useState(true);
+  const [Loading, setLoading] = useState(false);
   // Carica ID dalla query string (statico)
 
   useEffect(() => {
@@ -41,10 +43,14 @@ export default function Home() {
 
     if (id) {
       setInviteId(id);
-      loadInvite(id);
-      setIsOwner(false); // chi riceve il link non può modificare
+      setIsOwner(false);
+
+      loadInvite(id).finally(() => {
+        setLoading(false); // ✅ finito caricamento
+      });
     } else {
-      setIsOwner(true); // chi crea/modifica l’invito
+      setIsOwner(true);
+      setLoading(false); // ✅ nessun caricamento necessario
     }
   }, []);
 
@@ -142,10 +148,27 @@ export default function Home() {
 
   const openLocation = () => {
     if (!location.trim()) return;
-    Linking.openURL(
-      `https://www.google.com/maps?q=${encodeURIComponent(location)}`
-    );
+
+    const mapsUrl = `https://www.google.com/maps?q=${encodeURIComponent(
+      location
+    )}`;
+
+    if (Platform.OS === "web") {
+      window.open(mapsUrl, "_blank"); // ✅ apre in nuova scheda
+    } else {
+      Linking.openURL(mapsUrl); // ✅ su iOS/Android apre Maps o browser
+    }
   };
+
+  if (Loading) {
+    return (
+      <Loader
+        bgColor="#ffbfd6" // stesso rosa del background
+        dotColor="#ff1493" // stesso rosa del titolo
+        duration={800} // opzionale
+      />
+    );
+  }
 
   return (
     <View style={{ flex: 1 }}>
