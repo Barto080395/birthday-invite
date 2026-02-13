@@ -40,19 +40,20 @@ export default function Home() {
     const url = window.location.href;
     const query = new URL(url).searchParams;
     const id = query.get("id");
-
+  
     if (id) {
+      setLoading(true);      // 👈 ATTIVA loader
       setInviteId(id);
       setIsOwner(false);
-
+  
       loadInvite(id).finally(() => {
-        setLoading(false); // ✅ finito caricamento
+        setLoading(false);   // 👈 DISATTIVA loader
       });
     } else {
       setIsOwner(true);
-      setLoading(false); // ✅ nessun caricamento necessario
     }
   }, []);
+  
 
   const loadInvite = async (id: string) => {
     const invite = await getInvite(id);
