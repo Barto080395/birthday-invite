@@ -1,7 +1,6 @@
 import React from "react";
 import { View, Button, Image, StyleSheet, Alert } from "react-native";
 import { launchImageLibrary } from "react-native-image-picker";
-import ImageResizer from "@bam.tech/react-native-image-resizer";
 
 type Props = {
   imageUri: string | null;
@@ -9,41 +8,28 @@ type Props = {
 };
 
 export default function CustomImage({ imageUri, setImageUri }: Props) {
-  const pickImage = async () => {
+  const pickImage = () => {
     launchImageLibrary(
       {
         mediaType: "photo",
+        maxWidth: 150,
+        maxHeight: 150,
         quality: 1,
       },
-      async (response) => {
+      (response) => {
         if (response.didCancel) return;
         if (response.errorCode) {
           Alert.alert("Errore", response.errorMessage || "Errore selezione immagine");
           return;
         }
-
-        if (response.assets && response.assets.length > 0) {
-          try {
-            const assetUri = response.assets[0].uri;
-
-            // Ridimensiona immagine a 150x150 px
-            const resized = await ImageResizer.createResizedImage(
-              assetUri!,
-              150,
-              150,
-              "PNG",
-              100
-            );
-
-            setImageUri(resized.uri);
-          } catch (err) {
-            console.error(err);
-            Alert.alert("Errore", "Impossibile ridimensionare l'immagine");
-          }
-        }
+  
+        // ✅ Controllo sicuro su TypeScript
+        const uri = response.assets?.[0].uri ?? null;
+        if (uri) setImageUri(uri);
       }
     );
   };
+  
 
   return (
     <View style={styles.container}>
