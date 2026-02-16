@@ -107,7 +107,6 @@ export default function Home() {
       let invite: Invite;
       let id = inviteId;
   
-      // 👉 1. CREA INVITO SE NON ESISTE
       if (!id) {
         invite = await createInvite({
           title,
@@ -122,21 +121,22 @@ export default function Home() {
   
       if (!id) throw new Error("Invite ID mancante");
   
-      let imageUrl: string | undefined = currentInvite?.image;
+      let imageUrl: string | null = currentInvite?.image || null;
   
-      // 👉 2. SE IMMAGINE CAMBIATA → UPLOAD
       if (image && "uri" in image && image.uri && !image.uri.startsWith("http")) {
         imageUrl = await uploadImageAsync(image.uri, id);
       }
   
-      // 👉 3. UPDATE INVITO
-      invite = await updateInvite(id, {
+      const data: any = {
         title,
         message,
         location,
         targetDate: target,
-        imageUrl: imageUrl,
-      });
+      };
+  
+      if (imageUrl) data.image = imageUrl;
+  
+      invite = await updateInvite(id, data);
   
       setCurrentInvite(invite);
   
@@ -149,6 +149,7 @@ export default function Home() {
       setLoading(false);
     }
   };
+  
   
   
 
