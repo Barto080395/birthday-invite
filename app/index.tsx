@@ -19,6 +19,7 @@ import { createInvite, getInvite, updateInvite } from "./service/InviteService";
 import { Invite } from "./types/Invite.types";
 import { EditableText } from "@/components/ui/BirthdayInvite/EditableText";
 import { Loader } from "@/components/ui/BirthdayInvite/Loader";
+import { uploadImageAsync } from "@/firebaseStorage";
 
 export default function Home() {
   const [title, setTitle] = useState("🎉 Festa di Compleanno 🎉");
@@ -100,19 +101,11 @@ export default function Home() {
     try {
       const target = targetDate ? targetDate.toISOString() : undefined;
   
-      let imageBase64: string | undefined = undefined;
-  
-      // 👉 Converti immagine in Base64 se è stata scelta
+      let imageUrl: string | undefined = undefined;
+
       if (image && "uri" in image) {
-        const response = await fetch(image.uri);
-        const blob = await response.blob();
-  
-        imageBase64 = await new Promise((resolve, reject) => {
-          const reader = new FileReader();
-          reader.onloadend = () => resolve(reader.result as string);
-          reader.onerror = reject;
-          reader.readAsDataURL(blob);
-        });
+        // ✅ Upload su Firebase Storage
+        imageUrl = await uploadImageAsync(image.uri, inviteId || Date.now().toString());
       }
   
       let invite: Invite;
@@ -124,7 +117,7 @@ export default function Home() {
           message,
           location,
           targetDate: target,
-          image: imageBase64, // ✅ immagine salvata
+          image: imageUrl, // ✅ immagine salvata
         });
   
         setInviteId(invite._id || null);
@@ -135,7 +128,7 @@ export default function Home() {
           message,
           location,
           targetDate: target,
-          image: imageBase64, // ✅ immagine salvata
+          image: imageUrl, // ✅ immagine salvata
         });
       }
   
