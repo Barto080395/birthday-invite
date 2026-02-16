@@ -1,3 +1,4 @@
+import { useOwner } from "@/app/context/OwnerContext";
 import React from "react";
 import { View, Button, Image, StyleSheet, Alert } from "react-native";
 import { launchImageLibrary } from "react-native-image-picker";
@@ -8,6 +9,7 @@ type Props = {
 };
 
 export default function CustomImage({ imageUri, setImageUri }: Props) {
+  const { isOwner } = useOwner();
   const pickImage = () => {
     launchImageLibrary(
       {
@@ -33,7 +35,17 @@ export default function CustomImage({ imageUri, setImageUri }: Props) {
 
   return (
     <View style={styles.container}>
-      <Button title="Scegli immagine" onPress={pickImage} color="#ff1493" />
+      {/* Spostiamo il pulsante leggermente più in alto */}
+      {isOwner && (
+        <View style={{ marginBottom: 10 }}>
+          <Button
+            title="Scegli immagine"
+            onPress={pickImage}
+            color="#ff1493"
+          />
+        </View>
+      )}
+
       {imageUri && <Image source={{ uri: imageUri }} style={styles.image} />}
     </View>
   );
@@ -41,5 +53,5 @@ export default function CustomImage({ imageUri, setImageUri }: Props) {
 
 const styles = StyleSheet.create({
   container: { alignItems: "center", marginVertical: 10 },
-  image: { width: 150, height: 150, borderRadius: 75, marginTop: 10 },
+  image: { width: 150, height: 150, borderRadius: 75, marginTop: 0 }, // tolto marginTop
 });
