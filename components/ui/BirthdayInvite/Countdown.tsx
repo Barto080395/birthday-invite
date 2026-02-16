@@ -40,7 +40,7 @@ const Countdown = ({ targetDate }: CountdownProps) => {
   return (
     <Text style={{ color: "#fff", fontSize: 16 }}>
       {timeLeft.days + timeLeft.hours + timeLeft.minutes + timeLeft.seconds <= 0
-        ? "Auguri di buon compleanno! 🥳🎉"
+        ? "Augurissimi!! 🥳🎉"
         : `Mancano: ${timeLeft.days} giorni, ${timeLeft.hours} ore, ${timeLeft.minutes} minuti, ${timeLeft.seconds} secondi`}
     </Text>
   );

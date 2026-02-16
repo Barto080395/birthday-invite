@@ -1,5 +1,6 @@
 import React, { useState } from "react";
 import { Button, StyleSheet, Text, TextInput, View } from "react-native";
+import { useOwner } from "./context/OwnerContext";
 
 interface CountdownModalProps {
   initialDate: Date;
@@ -21,6 +22,7 @@ export default function CountdownModal({
   const [tempHour, setTempHour] = useState(initialDate.getHours());
   const [tempMinute, setTempMinute] = useState(initialDate.getMinutes());
   const [tempSecond, setTempSecond] = useState(initialDate.getSeconds());
+  const { isOwner } = useOwner();
 
   const handleConfirm = () => {
     const newDate = new Date(tempYear, tempMonth - 1, tempDay, tempHour, tempMinute, tempSecond);
@@ -28,6 +30,8 @@ export default function CountdownModal({
       onConfirm(newDate, name.trim() ? name : undefined);
     }
   };
+
+  if (!isOwner) return null;
 
   return (
     <View style={styles.modalOverlay}>
