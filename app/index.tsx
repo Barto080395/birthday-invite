@@ -19,6 +19,7 @@ import { createInvite, getInvite, updateInvite } from "./service/InviteService";
 import { Invite } from "./types/Invite.types";
 import { EditableText } from "@/components/ui/BirthdayInvite/EditableText";
 import { Loader } from "@/components/ui/BirthdayInvite/Loader";
+import { uploadImageAsync } from "@/firebaseStorage";
 
 export default function Home() {
   const [title, setTitle] = useState("🎉 Festa di Compleanno 🎉");
@@ -56,14 +57,21 @@ export default function Home() {
 
   const loadInvite = async (id: string) => {
     const invite = await getInvite(id);
+  
     if (invite) {
       setCurrentInvite(invite);
       setTitle(invite.title);
       setMessage(invite.message);
       setLocation(invite.location);
       setTargetDate(invite.targetDate ? new Date(invite.targetDate) : null);
+  
+      if (invite.image) {
+        setImage({ uri: invite.image });
+      }
     }
   };
+  
+  
 
   const pickImage = async () => {
     try {
@@ -92,40 +100,57 @@ export default function Home() {
 
   const saveInviteFirebase = async (): Promise<string | null> => {
     try {
-      // Trasforma `null` in `undefined` per Firebase Service
+      setLoading(true);
+  
       const target = targetDate ? targetDate.toISOString() : undefined;
-
+  
       let invite: Invite;
-      const imageFile =
-        image && "uri" in image
-          ? await (await fetch(image.uri)).blob()
-          : undefined;
-
-      if (!inviteId) {
+      let id = inviteId;
+  
+      // 👉 1. CREA INVITO SE NON ESISTE
+      if (!id) {
         invite = await createInvite({
           title,
           message,
           location,
-          targetDate: target, // ✅ ora è string | undefined
+          targetDate: target,
         });
-        setInviteId(invite._id || null);
-      } else {
-        invite = await updateInvite(inviteId, {
-          title,
-          message,
-          location,
-          targetDate: target, // ✅ string | undefined
-        });
+  
+        id = invite._id || null;
+        setInviteId(id);
       }
-
+  
+      if (!id) throw new Error("Invite ID mancante");
+  
+      let imageUrl: string | undefined = currentInvite?.image;
+  
+      // 👉 2. SE IMMAGINE CAMBIATA → UPLOAD
+      if (image && "uri" in image && image.uri && !image.uri.startsWith("http")) {
+        imageUrl = await uploadImageAsync(image.uri, id);
+      }
+  
+      // 👉 3. UPDATE INVITO
+      invite = await updateInvite(id, {
+        title,
+        message,
+        location,
+        targetDate: target,
+        imageUrl: imageUrl,
+      });
+  
       setCurrentInvite(invite);
-      return invite._id || null;
+  
+      return id;
     } catch (err) {
       console.error(err);
       alert("Errore salvataggio invito!");
       return null;
+    } finally {
+      setLoading(false);
     }
   };
+  
+  
 
   const shareInvite = async () => {
     const id = await saveInviteFirebase();

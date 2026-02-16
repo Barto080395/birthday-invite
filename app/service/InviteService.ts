@@ -11,6 +11,7 @@ export async function createInvite(data: {
   message: string;
   location: string;
   targetDate?: string;
+  image?: string;
 }): Promise<Invite> {
   const docRef = doc(invitesCollection);
 
@@ -19,6 +20,7 @@ export async function createInvite(data: {
     title: data.title,
     message: data.message,
     location: data.location,
+    image: data.image,
     targetDate: data.targetDate || null,
     createdAt: new Date().toISOString(),
     updatedAt: new Date().toISOString(),
@@ -36,6 +38,7 @@ export async function updateInvite(
     message?: string;
     location?: string;
     targetDate?: string;
+    imageUrl?:string;
   }
 ): Promise<Invite> {
   const docRef = doc(invitesCollection, id);

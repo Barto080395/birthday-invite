@@ -5,7 +5,7 @@ export type Invite = {
   message: string;
   location: string; // Location
   targetDate: string | null; // Data evento in formato ISO string
-  imageUrl?: string; // URL immagine (opzionale)
+  image?: any; // URL immagine (opzionale)
   createdAt?: string; // ISO string creazione
   updatedAt?: string; // ISO string ultimo aggiornamento
 };
