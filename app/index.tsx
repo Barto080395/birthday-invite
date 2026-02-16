@@ -27,7 +27,8 @@ export default function Home() {
     "Vuoi venire alla festa? 🎂 Sarà una giornata fantastica, ti aspetto! ✨"
   );
   const [location, setLocation] = useState("");
-  const [image, setImage] = useState(require("../assets/images/Amore.png"));
+//  const [image, setImage] = useState(require("../assets/images/Amore.png"));
+const [image, setImage] = useState<string | null>(null);
   const [targetDate, setTargetDate] = useState<Date | null>(null);
   const [showCountdownModal, setShowCountdownModal] = useState(false);
   const [showOnboarding, setShowOnboarding] = useState(true);
@@ -65,12 +66,35 @@ export default function Home() {
       setLocation(invite.location);
       setTargetDate(invite.targetDate ? new Date(invite.targetDate) : null);
   
-      if (invite.image) {
-        setImage({ uri: invite.image });
-      }
+      if (invite.image) setImage(invite.image);
     }
   };
   
+
+ /* const pickImage = async () => {
+    try {
+      if (Platform.OS === "web") {
+        const input = document.createElement("input");
+        input.type = "file";
+        input.accept = "image/*";
+        input.onchange = (e: any) => {
+          const file = e.target.files[0];
+          if (!file) return;
+          setImage({ uri: URL.createObjectURL(file) });
+        };
+        input.click();
+        return;
+      }
+      const result = await ImagePicker.launchImageLibraryAsync({
+        mediaTypes: ImagePicker.MediaTypeOptions.Images,
+        quality: 1,
+      });
+      if (!result.canceled) setImage({ uri: result.assets[0].uri });
+    } catch (err) {
+      console.error(err);
+      alert("Impossibile selezionare l'immagine.");
+    }
+ };*/
 
   const saveInviteFirebase = async (): Promise<string | null> => {
     try {
