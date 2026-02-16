@@ -38,7 +38,7 @@ export async function updateInvite(
     message?: string;
     location?: string;
     targetDate?: string;
-    imageUrl?:string;
+    image?:string;
   }
 ): Promise<Invite> {
   const docRef = doc(invitesCollection, id);

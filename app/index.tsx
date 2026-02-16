@@ -19,7 +19,6 @@ import { createInvite, getInvite, updateInvite } from "./service/InviteService";
 import { Invite } from "./types/Invite.types";
 import { EditableText } from "@/components/ui/BirthdayInvite/EditableText";
 import { Loader } from "@/components/ui/BirthdayInvite/Loader";
-import { uploadImageAsync } from "@/firebaseStorage";
 
 export default function Home() {
   const [title, setTitle] = useState("🎉 Festa di Compleanno 🎉");
@@ -71,7 +70,6 @@ export default function Home() {
     }
   };
   
-  
 
   const pickImage = async () => {
     try {
@@ -100,57 +98,55 @@ export default function Home() {
 
   const saveInviteFirebase = async (): Promise<string | null> => {
     try {
-      setLoading(true);
-  
       const target = targetDate ? targetDate.toISOString() : undefined;
   
-      let invite: Invite;
-      let id = inviteId;
+      let imageBase64: string | undefined = undefined;
   
-      if (!id) {
+      // 👉 Converti immagine in Base64 se è stata scelta
+      if (image && "uri" in image) {
+        const response = await fetch(image.uri);
+        const blob = await response.blob();
+  
+        imageBase64 = await new Promise((resolve, reject) => {
+          const reader = new FileReader();
+          reader.onloadend = () => resolve(reader.result as string);
+          reader.onerror = reject;
+          reader.readAsDataURL(blob);
+        });
+      }
+  
+      let invite: Invite;
+  
+      if (!inviteId) {
+        // 👉 CREA
         invite = await createInvite({
           title,
           message,
           location,
           targetDate: target,
+          image: imageBase64, // ✅ immagine salvata
         });
   
-        id = invite._id || null;
-        setInviteId(id);
+        setInviteId(invite._id || null);
+      } else {
+        // 👉 UPDATE
+        invite = await updateInvite(inviteId, {
+          title,
+          message,
+          location,
+          targetDate: target,
+          image: imageBase64, // ✅ immagine salvata
+        });
       }
-  
-      if (!id) throw new Error("Invite ID mancante");
-  
-      let imageUrl: string | null = currentInvite?.image || null;
-  
-      if (image && "uri" in image && image.uri && !image.uri.startsWith("http")) {
-        imageUrl = await uploadImageAsync(image.uri, id);
-      }
-  
-      const data: any = {
-        title,
-        message,
-        location,
-        targetDate: target,
-      };
-  
-      if (imageUrl) data.image = imageUrl;
-  
-      invite = await updateInvite(id, data);
   
       setCurrentInvite(invite);
-  
-      return id;
+      return invite._id || null;
     } catch (err) {
       console.error(err);
       alert("Errore salvataggio invito!");
       return null;
-    } finally {
-      setLoading(false);
     }
   };
-  
-  
   
 
   const shareInvite = async () => {
