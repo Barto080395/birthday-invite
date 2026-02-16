@@ -1,7 +1,7 @@
-// app/components/CustomImage.tsx
-import * as ImagePicker from "expo-image-picker";
 import React from "react";
-import { Button, Image, StyleSheet, View, Alert } from "react-native";
+import { View, Button, Image, StyleSheet, Alert } from "react-native";
+import { launchImageLibrary } from "react-native-image-picker";
+import ImageResizer from "@bam.tech/react-native-image-resizer";
 
 type Props = {
   imageUri: string | null;
@@ -10,25 +10,39 @@ type Props = {
 
 export default function CustomImage({ imageUri, setImageUri }: Props) {
   const pickImage = async () => {
-    const result = await ImagePicker.launchImageLibraryAsync({
-      mediaTypes: ImagePicker.MediaTypeOptions.Images,
-      quality: 1,
-    });
+    launchImageLibrary(
+      {
+        mediaType: "photo",
+        quality: 1,
+      },
+      async (response) => {
+        if (response.didCancel) return;
+        if (response.errorCode) {
+          Alert.alert("Errore", response.errorMessage || "Errore selezione immagine");
+          return;
+        }
 
-    if (!result.canceled) {
-      const asset = result.assets[0];
-      
-      // Controllo dimensione
-      if (asset.width > 150 || asset.height > 150) {
-        Alert.alert(
-          "Attenzione",
-          "L'immagine deve essere massimo 150x150 px"
-        );
-        return;
+        if (response.assets && response.assets.length > 0) {
+          try {
+            const assetUri = response.assets[0].uri;
+
+            // Ridimensiona immagine a 150x150 px
+            const resized = await ImageResizer.createResizedImage(
+              assetUri!,
+              150,
+              150,
+              "PNG",
+              100
+            );
+
+            setImageUri(resized.uri);
+          } catch (err) {
+            console.error(err);
+            Alert.alert("Errore", "Impossibile ridimensionare l'immagine");
+          }
+        }
       }
-
-      setImageUri(asset.uri);
-    }
+    );
   };
 
   return (
@@ -41,5 +55,5 @@ export default function CustomImage({ imageUri, setImageUri }: Props) {
 
 const styles = StyleSheet.create({
   container: { alignItems: "center", marginVertical: 10 },
-  image: { width: 150, height: 150, marginVertical: 10, borderRadius: 75 },
+  image: { width: 150, height: 150, borderRadius: 75, marginTop: 10 },
 });
