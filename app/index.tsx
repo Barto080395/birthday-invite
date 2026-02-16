@@ -19,7 +19,7 @@ import { createInvite, getInvite, updateInvite } from "./service/InviteService";
 import { Invite } from "./types/Invite.types";
 import { EditableText } from "@/components/ui/BirthdayInvite/EditableText";
 import { Loader } from "@/components/ui/BirthdayInvite/Loader";
-import { uploadImageAsync } from "@/firebaseStorage";
+import CustomImage from "@/components/ui/BirthdayInvite/CustomImage";
 
 export default function Home() {
   const [title, setTitle] = useState("🎉 Festa di Compleanno 🎉");
@@ -72,41 +72,22 @@ export default function Home() {
   };
   
 
-  const pickImage = async () => {
-    try {
-      if (Platform.OS === "web") {
-        const input = document.createElement("input");
-        input.type = "file";
-        input.accept = "image/*";
-        input.onchange = (e: any) => {
-          const file = e.target.files[0];
-          if (!file) return;
-          setImage({ uri: URL.createObjectURL(file) });
-        };
-        input.click();
-        return;
-      }
-      const result = await ImagePicker.launchImageLibraryAsync({
-        mediaTypes: ImagePicker.MediaTypeOptions.Images,
-        quality: 1,
-      });
-      if (!result.canceled) setImage({ uri: result.assets[0].uri });
-    } catch (err) {
-      console.error(err);
-      alert("Impossibile selezionare l'immagine.");
-    }
-  };
-
   const saveInviteFirebase = async (): Promise<string | null> => {
     try {
       const target = targetDate ? targetDate.toISOString() : undefined;
   
-      let imageUrl: string | undefined = undefined;
-
-      if (image && "uri" in image) {
-        // ✅ Upload su Firebase Storage
-        imageUrl = await uploadImageAsync(image.uri, inviteId || Date.now().toString());
+      let imageBase64: string | undefined;
+      if (image) {
+        const response = await fetch(image);
+        const blob = await response.blob();
+        imageBase64 = await new Promise<string>((resolve, reject) => {
+          const reader = new FileReader();
+          reader.onloadend = () => resolve(reader.result as string);
+          reader.onerror = reject;
+          reader.readAsDataURL(blob);
+        });
       }
+      
   
       let invite: Invite;
   
@@ -117,7 +98,7 @@ export default function Home() {
           message,
           location,
           targetDate: target,
-          image: imageUrl, // ✅ immagine salvata
+          image: imageBase64, // ✅ immagine salvata
         });
   
         setInviteId(invite._id || null);
@@ -128,7 +109,7 @@ export default function Home() {
           message,
           location,
           targetDate: target,
-          image: imageUrl, // ✅ immagine salvata
+          image: imageBase64, // ✅ immagine salvata
         });
       }
   
@@ -219,9 +200,7 @@ export default function Home() {
             <Text style={styles.finalTitle}>{title}</Text>
           )}
           {/* Foto */}
-          <TouchableOpacity style={styles.photoWrapper} onPress={pickImage}>
-            <Image source={image} style={styles.photo} />
-          </TouchableOpacity>
+          <CustomImage imageUri={image} setImageUri={setImage} />
 
           {/* Messaggio modificabile */}
           {isOwner ? (

@@ -1,6 +1,7 @@
+// app/components/CustomImage.tsx
 import * as ImagePicker from "expo-image-picker";
 import React from "react";
-import { Button, Image, StyleSheet, View } from "react-native";
+import { Button, Image, StyleSheet, View, Alert } from "react-native";
 
 type Props = {
   imageUri: string | null;
@@ -13,7 +14,21 @@ export default function CustomImage({ imageUri, setImageUri }: Props) {
       mediaTypes: ImagePicker.MediaTypeOptions.Images,
       quality: 1,
     });
-    if (!result.canceled) setImageUri(result.assets[0].uri);
+
+    if (!result.canceled) {
+      const asset = result.assets[0];
+      
+      // Controllo dimensione
+      if (asset.width > 150 || asset.height > 150) {
+        Alert.alert(
+          "Attenzione",
+          "L'immagine deve essere massimo 150x150 px"
+        );
+        return;
+      }
+
+      setImageUri(asset.uri);
+    }
   };
 
   return (
