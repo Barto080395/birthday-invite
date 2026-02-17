@@ -5,14 +5,18 @@ import {
   TextInput,
   TouchableOpacity,
   StyleSheet,
+  TextStyle,
 } from "react-native";
 
 type EditableTextProps = {
-  title?: string; // se voglio modificare un titolo
-  message?: string; // se voglio modificare un messaggio
+  title?: string;
+  message?: string;
   onChangeTitle?: (newValue: string) => void;
   onChangeMessage?: (newValue: string) => void;
   placeholder?: string;
+  titleColor?: string; // nuovo: colore titolo
+  titleSize?: number; // nuovo: dimensione titolo
+  messageColor?: string; // nuovo: colore messaggio
 };
 
 export const EditableText = ({
@@ -21,19 +25,20 @@ export const EditableText = ({
   onChangeTitle,
   onChangeMessage,
   placeholder,
+  titleColor = "#000",
+  titleSize = 26,
+  messageColor = "#000",
 }: EditableTextProps) => {
-    
   const [isEditing, setIsEditing] = useState(false);
   const value = title ?? message ?? "";
   const onChange = title ? onChangeTitle : onChangeMessage;
+  const isTitle = !!title;
 
   const confirm = (newValue: string) => {
     if (!newValue.trim()) return;
     onChange?.(newValue);
     setIsEditing(false);
   };
-
-  const isTitle = !!title;
 
   return (
     <View style={styles.container}>
@@ -43,11 +48,15 @@ export const EditableText = ({
             value={value}
             onChangeText={onChange || (() => {})}
             placeholder={placeholder}
-            style={[styles.input, isTitle && styles.titleInput]}
-            multiline={true} // ✅ permette più righe
-            textAlignVertical="top" // opzionale: fa partire il testo dall'alto
+            style={[
+              styles.input,
+              isTitle
+                ? { fontSize: titleSize, color: titleColor }
+                : { color: messageColor },
+            ]}
+            multiline
+            textAlignVertical="top"
           />
-
           <TouchableOpacity
             style={styles.confirmButton}
             onPress={() => confirm(value)}
@@ -57,12 +66,36 @@ export const EditableText = ({
         </>
       ) : (
         <>
-          <Text style={isTitle ? styles.titleText : styles.messageText}>
+          <Text
+            style={[
+              isTitle
+                ? {
+                    fontSize: titleSize,
+                    fontWeight: "bold",
+                    color: titleColor,
+                    textAlign: "center",
+                    marginBottom: 10,
+                  }
+                : {
+                  fontSize: 16,
+                  color: messageColor,
+                  textAlign: "center",
+                  backgroundColor: "white",
+                  padding: 15,
+                  borderRadius: 12,
+                  width: "100%",
+                  alignSelf: "stretch",
+                  overflow: "hidden",
+              }
+              
+            ]}
+          >
             {value}
           </Text>
           <TouchableOpacity
             style={styles.editButton}
             onPress={() => setIsEditing(true)}
+            
           >
             <Text style={styles.editText}>Modifica 🖋️</Text>
           </TouchableOpacity>
@@ -76,14 +109,12 @@ const styles = StyleSheet.create({
   container: { width: "100%", marginBottom: 18 },
   input: {
     borderWidth: 2,
-    borderColor: "#ff8fb7",
-    backgroundColor: "#ffc3d9",
+    borderColor: "black",
+    backgroundColor: "white",
     borderRadius: 15,
     padding: 12,
-    fontSize: 18,
     marginBottom: 12,
   },
-  titleInput: { fontSize: 26 },
   confirmButton: {
     backgroundColor: "#ff7aa2",
     padding: 12,
@@ -107,21 +138,4 @@ const styles = StyleSheet.create({
     fontWeight: "bold",
     fontSize: 16,
   },
-  titleText: {
-    fontSize: 26,
-    fontWeight: "bold",
-    color: "#ff1493",
-    textAlign: "center",
-    marginBottom: 10,
-  },
-  messageText: {
-    fontSize: 16,
-    textAlign: "center",
-    backgroundColor: "#ffc3d9",
-    padding: 15,
-    borderRadius: 12,
-    width: "100%",       // ✅ assicura che il testo sappia dove spezzarsi
-    flexWrap: "wrap",    // ✅ permette il wrapping
-  }
-  
 });

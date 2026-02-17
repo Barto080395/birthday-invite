@@ -12,16 +12,20 @@ import {
 import * as Linking from "expo-linking";
 import { ConfettiComponent } from "@/components/ui/BirthdayInvite/Confetto";
 import Countdown from "@/components/ui/BirthdayInvite/Countdown";
-import OnboardingModal from "@/components/ui/BirthdayInvite/OnboardingModal";
-
 import { EditableText } from "@/components/ui/BirthdayInvite/EditableText";
 import { Loader } from "@/components/ui/BirthdayInvite/Loader";
 import CustomImage from "@/components/ui/BirthdayInvite/CustomImage";
 import { Share2 } from "lucide-react";
-import { Invite } from "@/app/types/Invite.types";
-import { createInvite, getInvite, updateInvite } from "@/app/service/InviteService";
 import CountdownModal from "@/app/modal";
 import { useOwner } from "@/app/context/OwnerContext";
+import { useTheme } from "@/app/context/ThemeContext";
+import { Invite } from "@/app/types/Invite.types";
+import {
+  createInvite,
+  getInvite,
+  updateInvite,
+} from "@/app/service/InviteService";
+import { SettingsMenu } from "./ui/BirthdayInvite/SettingsMenu";
 
 export default function Home() {
   const [title, setTitle] = useState("🎉 Festa di Compleanno 🎉");
@@ -32,24 +36,27 @@ export default function Home() {
   const [image, setImage] = useState<string | null>(null);
   const [targetDate, setTargetDate] = useState<Date | null>(null);
   const [showCountdownModal, setShowCountdownModal] = useState(false);
-  const [showOnboarding, setShowOnboarding] = useState(true);
   const [inviteId, setInviteId] = useState<string | null>(null);
   const [currentInvite, setCurrentInvite] = useState<Invite | null>(null);
   const [Loading, setLoading] = useState(false);
-  const { isOwner, setIsOwner } = useOwner()
-  // Carica ID dalla query string (statico)
+
+  // STATI GLOBALI
+  const { isOwner, setIsOwner } = useOwner();
+  const { theme, setTheme } = useTheme();
+
+  // Carica ID dalla query string
   useEffect(() => {
     const url = window.location.href;
     const query = new URL(url).searchParams;
     const id = query.get("id");
 
     if (id) {
-      setLoading(true); // 👈 ATTIVA loader
+      setLoading(true);
       setInviteId(id);
       setIsOwner(false);
 
       loadInvite(id).finally(() => {
-        setLoading(false); // 👈 DISATTIVA loader
+        setLoading(false);
       });
     } else {
       setIsOwner(true);
@@ -58,23 +65,25 @@ export default function Home() {
 
   const loadInvite = async (id: string) => {
     const invite = await getInvite(id);
-
     if (invite) {
       setCurrentInvite(invite);
       setTitle(invite.title);
       setMessage(invite.message);
       setLocation(invite.location);
       setTargetDate(invite.targetDate ? new Date(invite.targetDate) : null);
-
       if (invite.image) setImage(invite.image);
+      if (invite.theme) {
+        setTheme(invite.theme);
+      }
+      
     }
   };
 
   const saveInviteFirebase = async (): Promise<string | null> => {
     try {
       const target = targetDate ? targetDate.toISOString() : undefined;
-
       let imageBase64: string | undefined;
+
       if (image) {
         const response = await fetch(image);
         const blob = await response.blob();
@@ -89,24 +98,23 @@ export default function Home() {
       let invite: Invite;
 
       if (!inviteId) {
-        // 👉 CREA
         invite = await createInvite({
           title,
           message,
           location,
           targetDate: target,
-          image: imageBase64, // ✅ immagine salvata
+          image: imageBase64,
+          theme
         });
-
         setInviteId(invite._id || null);
       } else {
-        // 👉 UPDATE
         invite = await updateInvite(inviteId, {
           title,
           message,
           location,
           targetDate: target,
-          image: imageBase64, // ✅ immagine salvata
+          image: imageBase64,
+          theme,
         });
       }
 
@@ -122,7 +130,7 @@ export default function Home() {
   const shareInvite = async () => {
     const id = await saveInviteFirebase();
     if (!id) return;
-    const link = `https://birthday-invite-vert.vercel.app/?id=${id}`; // ✅ query string
+    const link = `https://birthday-invite-vert.vercel.app/?id=${id}`;
     try {
       if (navigator.share)
         await navigator.share({
@@ -140,38 +148,26 @@ export default function Home() {
 
   const openLocation = () => {
     if (!location.trim()) return;
-
     const mapsUrl = `https://www.google.com/maps?q=${encodeURIComponent(
       location
     )}`;
-
-    if (Platform.OS === "web") {
-      window.open(mapsUrl, "_blank"); // ✅ apre in nuova scheda
-    } else {
-      Linking.openURL(mapsUrl); // ✅ su iOS/Android apre Maps o browser
-    }
+    if (Platform.OS === "web") window.open(mapsUrl, "_blank");
+    else Linking.openURL(mapsUrl);
   };
 
   if (Loading) {
     return (
       <Loader
-        bgColor="#ffbfd6" // stesso rosa del background
-        dotColor="#ff1493" // stesso rosa del titolo
-        duration={800} // opzionale
+        bgColor={theme.background}
+        dotColor={theme.titleColor}
+        duration={800}
       />
     );
   }
 
   return (
-    <View style={{ flex: 1 }}>
-      {isOwner && (
-        <OnboardingModal
-          visible={showOnboarding}
-          onClose={() => setShowOnboarding(false)}
-        />
-      )}
+    <View style={{ flex: 1, backgroundColor: theme.background }}>
       <ScrollView
-        style={{ backgroundColor: "#ffbfd6", flex: 1 }}
         contentContainerStyle={{
           flexGrow: 1,
           justifyContent: "center",
@@ -179,51 +175,83 @@ export default function Home() {
           paddingBottom: 50,
         }}
       >
-        <View style={styles.card}>
-          {isOwner && (
-            <TouchableOpacity
-              style={styles.helpButtonCard}
-              onPress={() => setShowOnboarding(true)}
+        <View
+          style={[
+            styles.card,
+            {
+              backgroundColor: theme.card.background,
+              shadowColor: theme.card.shadowColor,
+              shadowOpacity: theme.card.shadowOpacity,
+              ...(Platform.OS === "web"
+                ? {
+                    boxShadow: `0 0 20px 8px ${theme.card.shadowColor}55`,
+                  }
+                : {}),
+            },
+          ]}
+        >
+          {isOwner && <SettingsMenu />}
+          {isOwner ? (
+           <EditableText
+           title={title}
+           onChangeTitle={setTitle}
+           titleColor={theme.titleColor}   // ✅ colore dinamico
+           titleSize={theme.titleSize}     // ✅ dimensione dinamica
+         />
+          ) : (
+            <Text
+              style={[
+                styles.finalTitle,
+                { color: theme.titleColor, fontSize: theme.titleSize },
+              ]}
             >
-              <Text style={styles.helpButtonText}>?</Text>
-            </TouchableOpacity>
+              {title}
+            </Text>
           )}
 
-          {/* Titolo modificabile */}
-          {isOwner ? (
-            <EditableText title={title} onChangeTitle={setTitle} />
-          ) : (
-            <Text style={styles.finalTitle}>{title}</Text>
-          )}
-          {/* Foto */}
           <CustomImage imageUri={image} setImageUri={setImage} />
 
-          {/* Messaggio modificabile */}
           {isOwner ? (
-            <EditableText
-              message={message}
-              onChangeMessage={setMessage}
-              placeholder="Scrivi un messaggio speciale..."
-            />
+           <EditableText
+           message={message}
+           onChangeMessage={setMessage}
+           messageColor={theme.messageColor} // ✅ colore dinamico
+         />
           ) : (
-            <Text style={styles.message}>{message}</Text>
+            <Text
+              style={[
+                styles.message,
+                {
+                  backgroundColor: theme.background,
+                  color: theme.messageColor,
+                },
+              ]}
+            >
+              {message}
+            </Text>
           )}
 
-          {/* Countdown */}
           <TouchableOpacity
-            style={styles.countdownWrapper}
+            style={[
+              styles.countdownWrapper,
+              { backgroundColor:  theme.button.background },
+            ]}
             onPress={() => setShowCountdownModal(true)}
           >
             {targetDate ? (
               <Countdown targetDate={targetDate} />
             ) : (
-              <Text style={styles.countdownPlaceholder}>
+              <Text
+                style={[
+                  styles.countdownPlaceholder,
+                  { color: theme.button.text },
+                ]}
+              >
                 Imposta il countdown ⏳
               </Text>
             )}
           </TouchableOpacity>
 
-          {/* Location */}
           <View style={styles.locationRow}>
             <TextInput
               placeholder="Inserisci la location"
@@ -231,19 +259,42 @@ export default function Home() {
               onChangeText={setLocation}
               style={[styles.input, { flex: 1 }]}
             />
-            <TouchableOpacity onPress={openLocation} style={styles.goButton}>
-              <Text style={styles.goText}>Vai</Text>
+
+            <TouchableOpacity
+              onPress={openLocation}
+              style={[
+                styles.goButton,
+                { backgroundColor: theme.button.background },
+              ]}
+            >
+              <Text style={[styles.goText, { color: theme.button.text }]}>
+                Vai
+              </Text>
             </TouchableOpacity>
           </View>
 
-          {/* Condivisione */}
           {isOwner && (
-           <TouchableOpacity style={styles.shareButton} onPress={shareInvite}>
-           <View style={{ flexDirection: "row", alignItems: "center", justifyContent: "center" }}>
-             <Share2 color="#fff" size={20} style={{ marginRight: 8 }} />
-             <Text style={styles.shareText}>Condividi Invito</Text>
-           </View>
-         </TouchableOpacity>
+            <TouchableOpacity
+              style={[
+                styles.shareButton,
+                { backgroundColor: theme.button.background },
+              ]}
+              onPress={shareInvite}
+            >
+              <View
+                style={{
+                  flexDirection: "row",
+                  alignItems: "center",
+                  justifyContent: "center",
+                }}
+              >
+                <Share2 color={theme.button.text} size={20} />
+
+                <Text style={[styles.shareText, { color: theme.button.text }]}>
+                  Condividi Invito
+                </Text>
+              </View>
+            </TouchableOpacity>
           )}
 
           {showCountdownModal && (
@@ -270,21 +321,14 @@ const styles = StyleSheet.create({
   card: {
     padding: 20,
     margin: 20,
+    maxWidth: 500,
     borderRadius: 25,
-    backgroundColor: "#ffe6f0",
     alignSelf: "center",
     alignItems: "center",
-    shadowColor: "rgba(255, 120, 170, 1.5)",
     shadowOffset: { width: 0, height: 8 },
-    shadowOpacity: 2,
+    shadowOpacity: 0.4,
     shadowRadius: 20,
     elevation: 12,
-    ...(Platform.OS === "web"
-      ? {
-          boxShadow:
-            "0 0 20px 8px rgba(255,120,170,0.45), 0 0 40px 12px rgba(255,180,210,0.3)",
-        }
-      : {}),
   },
   helpButtonCard: {
     position: "absolute",
@@ -293,109 +337,55 @@ const styles = StyleSheet.create({
     width: 36,
     height: 36,
     borderRadius: 18,
-    backgroundColor: "rgba(255,120,170,0.85)",
     justifyContent: "center",
     alignItems: "center",
     zIndex: 10,
   },
   helpButtonText: { color: "#fff", fontSize: 20, fontWeight: "bold" },
-  header: {
-    textAlign: "center",
-    fontSize: 26,
-    fontWeight: "bold",
-    color: "#ff1493",
-    marginBottom: 15,
-  },
-  input: {
-    borderWidth: 2,
-    borderColor: "#ff8fb7",
-    backgroundColor: "#ffc3d9",
-    borderRadius: 15,
-    padding: 12,
-    fontSize: 18,
-    marginBottom: 12,
-  }, // ====== TITOLO ======
-  confirmButton: {
-    backgroundColor: "#ff7aa2",
-    padding: 12,
-    borderRadius: 12,
-    marginTop: 8,
-  },
-  confirmText: {
-    color: "#fff",
-    textAlign: "center",
-    fontSize: 18,
-    fontWeight: "bold",
-  },
-  editButton: {
-    backgroundColor: "#ffb6d6",
-    padding: 10,
-    borderRadius: 10,
-    marginTop: 6,
-  },
-  editText: {
-    color: "#ff0066",
-    textAlign: "center",
-    fontSize: 16,
-    fontWeight: "bold",
-  },
   finalTitle: {
     fontSize: 26,
     fontWeight: "bold",
-    color: "#ff1493",
     textAlign: "center",
     marginBottom: 10,
-  }, // ====== FOTO ======
-  photoWrapper: {
-    width: 200,
-    height: 200,
-    alignSelf: "center",
-    borderRadius: 100,
-    overflow: "hidden",
-    borderWidth: 4,
-    borderColor: "#ff8fb7",
-    marginBottom: 20,
   },
-  photo: { width: "100%", height: "100%" }, // ====== MESSAGGIO ======
   message: {
     fontSize: 16,
     textAlign: "center",
-    backgroundColor: "#ffc3d9",
     padding: 15,
     borderRadius: 12,
     marginBottom: 20,
-  }, // ====== COUNTDOWN ======
+  },
   countdownWrapper: {
-    backgroundColor: "#ff1493",
     paddingVertical: 18,
     paddingHorizontal: 25,
     borderRadius: 25,
     alignItems: "center",
     marginBottom: 25,
     width: "100%",
-    shadowColor: "#ff1493",
-    shadowOffset: { width: 0, height: 10 },
-    shadowOpacity: 0.4,
-    shadowRadius: 25,
-    elevation: 12,
   },
-  countdownPlaceholder: { color: "#fff", fontSize: 18, textAlign: "center" }, // ====== LOCATION ======
+  countdownPlaceholder: { color: "#fff", fontSize: 18, textAlign: "center" },
   locationRow: {
     flexDirection: "row",
     alignItems: "center",
     marginBottom: 20,
     width: "100%",
   },
+  input: {
+    borderWidth: 2,
+    borderRadius: 15,
+    padding: 12,
+    fontSize: 18,
+    marginBottom: 12,
+  },
   goButton: {
-    backgroundColor: "#ff1493",
     paddingHorizontal: 12,
     paddingVertical: 12,
     borderRadius: 12,
     marginLeft: 10,
     marginTop: -12,
   },
-  goText: { color: "#fff", fontWeight: "bold" }, // ====== SHARE ======
-  shareButton: { backgroundColor: "#ff7aa2", padding: 15, borderRadius: 20 },
+  goText: { color: "#fff", fontWeight: "bold" },
+  shareButton: { padding: 15, borderRadius: 20, marginBottom: 20 },
   shareText: {
     textAlign: "center",
     color: "#fff",

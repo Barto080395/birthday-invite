@@ -1,4 +1,5 @@
-// app/constants/Invite.types.ts
+import { Theme } from "../context/ThemeContext";
+
 export type Invite = {
   _id?: string; // ID documento Firestore
   title: string; // Titolo invito
@@ -8,4 +9,5 @@ export type Invite = {
   image?: any; // URL immagine (opzionale)
   createdAt?: string; // ISO string creazione
   updatedAt?: string; // ISO string ultimo aggiornamento
+  theme?: Theme;
 };

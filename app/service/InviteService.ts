@@ -2,6 +2,7 @@
 import { db } from "@/firebaseConfig";
 import { collection, doc, setDoc, getDoc, updateDoc } from "firebase/firestore";
 import { Invite } from "../types/Invite.types";
+import { Theme } from "../context/ThemeContext";
 
 const invitesCollection = collection(db, "invites");
 
@@ -12,6 +13,7 @@ export async function createInvite(data: {
   location: string;
   targetDate?: string;
   image?: string;
+  theme?: Theme;
 }): Promise<Invite> {
   const docRef = doc(invitesCollection);
 
@@ -38,7 +40,8 @@ export async function updateInvite(
     message?: string;
     location?: string;
     targetDate?: string;
-    image?:string;
+    image?: string;
+    theme?: Theme;
   }
 ): Promise<Invite> {
   const docRef = doc(invitesCollection, id);

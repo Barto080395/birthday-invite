@@ -1,3 +1,4 @@
+import { useTheme } from "@/app/context/ThemeContext";
 import React, { useEffect, useState } from "react";
 import { Text } from "react-native";
 
@@ -27,6 +28,7 @@ const calculateTimeLeft = (targetDate: Date): TimeLeft => {
 };
 
 const Countdown = ({ targetDate }: CountdownProps) => {
+  const { theme } = useTheme();
   const [timeLeft, setTimeLeft] = useState(calculateTimeLeft(targetDate));
 
   useEffect(() => {
@@ -38,7 +40,7 @@ const Countdown = ({ targetDate }: CountdownProps) => {
   }, [targetDate]);
 
   return (
-    <Text style={{ color: "#fff", fontSize: 16 }}>
+    <Text style={{ color: theme.button.text, fontSize: 16, }}>
       {timeLeft.days + timeLeft.hours + timeLeft.minutes + timeLeft.seconds <= 0
         ? "Augurissimi!! 🥳🎉"
         : `Mancano: ${timeLeft.days} giorni, ${timeLeft.hours} ore, ${timeLeft.minutes} minuti, ${timeLeft.seconds} secondi`}
