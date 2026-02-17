@@ -31,7 +31,7 @@ export const ThemeProvider = ({ children }: { children: ReactNode }) => {
     background: "#ffe4ef",   // sfondo rosa chiarissimo
 
     card: {
-      background: "#ffffff",
+      background: "#ffe4ef",
       shadowColor: "#4a2a3a",
       shadowOpacity: 1,
     },
