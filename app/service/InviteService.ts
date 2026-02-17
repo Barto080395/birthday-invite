@@ -24,6 +24,7 @@ export async function createInvite(data: {
     location: data.location,
     image: data.image,
     targetDate: data.targetDate || null,
+    theme: data.theme,
     createdAt: new Date().toISOString(),
     updatedAt: new Date().toISOString(),
   };
