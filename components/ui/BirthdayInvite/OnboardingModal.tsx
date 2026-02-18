@@ -23,19 +23,28 @@ export default function OnboardingModal({ visible, onClose }: Props) {
             Tocca il cerchio foto per caricare l'immagine dell'invito.
           </Text>
 
-          <Text style={styles.rowTitle}>3. Aggiungi un Message</Text>
+          <Text style={styles.rowTitle}>3. Scrivi il messaggio</Text>
           <Text style={styles.rowText}>
-            Inserisci un messaggio al tuo Invito".
+            Inserisci un messaggio personalizzato per i tuoi invitati ✨ Puoi
+            raccontare cosa festeggi, dove sarà la festa o qualsiasi dettaglio
+            importante 💌
           </Text>
 
           <Text style={styles.rowTitle}>4. Imposta data</Text>
           <Text style={styles.rowText}>
-            Tocca il countdown per selezionare data e ora (deve essere futura).
+            Tocca il countdown per selezionare data e ora dell’evento ⏳ (la
+            data deve essere futura).
           </Text>
 
-          <Text style={styles.rowTitle}>5. Condividi</Text>
+          <Text style={styles.rowTitle}>5. Personalizza il tema 🎨</Text>
           <Text style={styles.rowText}>
-            Usa "Condividi invito" per mandarlo ai tuoi amici o salvarlo.
+            Apri il menu Impostazioni ⚙️ in alto e scegli "Theme". Puoi cambiare
+            colori, stile del titolo e pulsanti per rendere l’invito unico 🌈✨
+          </Text>
+
+          <Text style={styles.rowTitle}>6. Condividi l’invito</Text>
+          <Text style={styles.rowText}>
+            Premi "Condividi Invito" per inviarlo ai tuoi amici tramite link 📲
           </Text>
 
           <TouchableOpacity onPress={onClose} style={styles.button}>

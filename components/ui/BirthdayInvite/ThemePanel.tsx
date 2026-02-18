@@ -160,9 +160,11 @@ const styles = StyleSheet.create({
   closeButton: {
     marginTop: 15,
     paddingVertical: 10,
+    paddingHorizontal: 20,
     borderRadius: 12,
-    alignItems: "center",
-  },
+    alignSelf: "center",
+    backgroundColor: "#ff4081",
+  }, 
   closeText: {
     fontWeight: "bold",
     fontSize: 14,

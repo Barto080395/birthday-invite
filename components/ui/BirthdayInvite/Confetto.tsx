@@ -1,11 +1,11 @@
 import React, { useEffect, useMemo, useRef } from "react";
 import {
-    Animated,
-    Dimensions,
-    Easing,
-    StyleSheet,
-    Text,
-    View,
+  Animated,
+  Dimensions,
+  Easing,
+  StyleSheet,
+  Text,
+  View,
 } from "react-native";
 
 const { height: screenHeight } = Dimensions.get("window");
@@ -97,10 +97,10 @@ const Confetto: React.FC<ConfettoProps> = ({ left, delay, size, content }) => {
 };
 
 // --- Componente Contenitore Principale (Invariato) ---
-export const ConfettiComponent = () => {
+export const ConfettiComponent = ({ emoji = "❤️" }) => {
   const confettiCount = 30;
-  const content = "❤️";
 
+  // Rigenera confetti quando cambia emoji
   const confettiArray = useMemo(
     () =>
       Array.from({ length: confettiCount }).map(() => ({
@@ -108,23 +108,24 @@ export const ConfettiComponent = () => {
         delay: Math.random() * 5,
         size: Math.random() * 1.5 + 0.8,
       })),
-    []
+    [emoji] // <-- qui
   );
 
   return (
     <View style={styles.container}>
       {confettiArray.map((c, i) => (
         <Confetto
-          key={i}
+          key={`${emoji}-${i}`} // <-- forza React a ricreare il componente
           left={c.left}
           delay={c.delay}
           size={c.size}
-          content={content}
+          content={emoji}
         />
       ))}
     </View>
   );
 };
+
 
 // --- StyleSheet di React Native (Invariato) ---
 const styles = StyleSheet.create({

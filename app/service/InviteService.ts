@@ -14,6 +14,7 @@ export async function createInvite(data: {
   targetDate?: string;
   image?: string;
   theme?: Theme;
+  confettiEmoji?:string
 }): Promise<Invite> {
   const docRef = doc(invitesCollection);
 
@@ -25,6 +26,7 @@ export async function createInvite(data: {
     image: data.image,
     targetDate: data.targetDate || null,
     theme: data.theme,
+    confettiEmoji: data.confettiEmoji,
     createdAt: new Date().toISOString(),
     updatedAt: new Date().toISOString(),
   };
@@ -43,6 +45,7 @@ export async function updateInvite(
     targetDate?: string;
     image?: string;
     theme?: Theme;
+    confettiEmoji?:string
   }
 ): Promise<Invite> {
   const docRef = doc(invitesCollection, id);

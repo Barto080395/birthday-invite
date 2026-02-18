@@ -4,11 +4,21 @@ import { View, Text, TouchableOpacity, StyleSheet } from "react-native";
 import OnboardingModal from "@/components/ui/BirthdayInvite/OnboardingModal";
 import { ThemePanel } from "./ThemePanel";
 import { useTheme } from "@/app/context/ThemeContext";
+import { ConfettiPickerModal } from "@/app/ConfettoModal";
 
-export const SettingsMenu = () => {
+interface SettingsMenuProps {
+  confettiEmoji: string;
+  setConfettiEmoji: (emoji: string) => void;
+}
+
+export const SettingsMenu: React.FC<SettingsMenuProps> = ({
+  confettiEmoji,
+  setConfettiEmoji,
+}) => {
   const [menuVisible, setMenuVisible] = useState(false);
   const [themePanelVisible, setThemePanelVisible] = useState(false);
   const [guideVisible, setGuideVisible] = useState(true);
+  const [confettiModalVisible, setConfettiModalVisible] = useState(false);
   const { theme } = useTheme();
 
   return (
@@ -38,6 +48,17 @@ export const SettingsMenu = () => {
             <Text style={styles.menuText}>🎨 Theme</Text>
           </TouchableOpacity>
 
+
+          <TouchableOpacity
+            style={styles.menuItem}
+            onPress={() => {
+              setConfettiModalVisible(true);
+              setMenuVisible(false);
+            }}
+          >
+            <Text style={styles.menuText}>✨ Confetti Emoji</Text>
+          </TouchableOpacity>
+
           <TouchableOpacity
             style={styles.menuItem}
             onPress={() => {
@@ -53,6 +74,17 @@ export const SettingsMenu = () => {
       {/* Pannello Theme */}
       {themePanelVisible && (
         <ThemePanel onClose={() => setThemePanelVisible(false)} />
+      )}
+
+       {/* Confetti Emoji Picker */}
+       {confettiModalVisible && (
+        <ConfettiPickerModal
+          visible={confettiModalVisible}
+          onClose={() => setConfettiModalVisible(false)}
+          onSelect={(emoji) => {
+            setConfettiEmoji(emoji);
+          }}
+        />
       )}
 
       {/* Onboarding Modal */}
@@ -82,7 +114,7 @@ const styles = StyleSheet.create({
     position: "absolute",
     top: 35,
     right: 10,
-    width: 150,
+    width: 160,
     backgroundColor: "#fff",
     borderRadius: 10,
     paddingVertical: 10,

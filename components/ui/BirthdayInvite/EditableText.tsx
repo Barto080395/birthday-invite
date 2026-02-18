@@ -29,10 +29,12 @@ export const EditableText = ({
   titleSize = 26,
   messageColor = "#000",
 }: EditableTextProps) => {
+
   const [isEditing, setIsEditing] = useState(false);
-  const value = title ?? message ?? "";
-  const onChange = title ? onChangeTitle : onChangeMessage;
-  const isTitle = !!title;
+
+  const isTitle = title !== undefined;
+  const value = isTitle ? title ?? "" : message ?? "";
+  const onChange = isTitle ? onChangeTitle : onChangeMessage;
 
   const confirm = (newValue: string) => {
     if (!newValue.trim()) return;
@@ -114,7 +116,7 @@ const styles = StyleSheet.create({
     borderRadius: 15,
     padding: 12,
     marginBottom: 12,
-  },
+  },  
   confirmButton: {
     backgroundColor: "#ff7aa2",
     padding: 12,

@@ -28,9 +28,9 @@ import {
 import { SettingsMenu } from "./ui/BirthdayInvite/SettingsMenu";
 
 export default function Home() {
-  const [title, setTitle] = useState("🎉 Festa di Compleanno 🎉");
+  const [title, setTitle] = useState("🎉 Inserisci Titolo 🎉");
   const [message, setMessage] = useState(
-    "Vuoi venire alla festa? 🎂 Sarà una giornata fantastica, ti aspetto! ✨"
+    "📝 Scrivi qui il tuo messaggio speciale per l’invito!✨ Non dimenticare di aggiungere un tocco personale 🌈💖"
   );
   const [location, setLocation] = useState("");
   const [image, setImage] = useState<string | null>(null);
@@ -39,6 +39,7 @@ export default function Home() {
   const [inviteId, setInviteId] = useState<string | null>(null);
   const [currentInvite, setCurrentInvite] = useState<Invite | null>(null);
   const [Loading, setLoading] = useState(false);
+  const [confettiEmoji, setConfettiEmoji] = useState("❤️"); // default emoji
 
   // STATI GLOBALI
   const { isOwner, setIsOwner } = useOwner();
@@ -75,7 +76,9 @@ export default function Home() {
       if (invite.theme) {
         setTheme(invite.theme);
       }
-      
+      if (invite.confettiEmoji) {
+        setConfettiEmoji(invite.confettiEmoji);
+      }
     }
   };
 
@@ -104,7 +107,8 @@ export default function Home() {
           location,
           targetDate: target,
           image: imageBase64,
-          theme
+          theme,
+          confettiEmoji,
         });
         setInviteId(invite._id || null);
       } else {
@@ -115,6 +119,7 @@ export default function Home() {
           targetDate: target,
           image: imageBase64,
           theme,
+          confettiEmoji,
         });
       }
 
@@ -190,14 +195,20 @@ export default function Home() {
             },
           ]}
         >
-          {isOwner && <SettingsMenu />}
+          {isOwner && (
+            <SettingsMenu
+              confettiEmoji={confettiEmoji}
+              setConfettiEmoji={setConfettiEmoji}
+            />
+          )}
+
           {isOwner ? (
-           <EditableText
-           title={title}
-           onChangeTitle={setTitle}
-           titleColor={theme.titleColor}   // ✅ colore dinamico
-           titleSize={theme.titleSize}     // ✅ dimensione dinamica
-         />
+            <EditableText
+              title={title}
+              onChangeTitle={setTitle}
+              titleColor={theme.titleColor} // ✅ colore dinamico
+              titleSize={theme.titleSize} // ✅ dimensione dinamica
+            />
           ) : (
             <Text
               style={[
@@ -212,11 +223,11 @@ export default function Home() {
           <CustomImage imageUri={image} setImageUri={setImage} />
 
           {isOwner ? (
-           <EditableText
-           message={message}
-           onChangeMessage={setMessage}
-           messageColor={theme.messageColor} // ✅ colore dinamico
-         />
+            <EditableText
+              message={message}
+              onChangeMessage={setMessage}
+              messageColor={theme.messageColor} // ✅ colore dinamico
+            />
           ) : (
             <Text
               style={[
@@ -234,7 +245,7 @@ export default function Home() {
           <TouchableOpacity
             style={[
               styles.countdownWrapper,
-              { backgroundColor:  theme.button.background },
+              { backgroundColor: theme.button.background },
             ]}
             onPress={() => setShowCountdownModal(true)}
           >
@@ -254,7 +265,7 @@ export default function Home() {
 
           <View style={styles.locationRow}>
             <TextInput
-              placeholder="Inserisci la location"
+              placeholder="Inserisci la location.."
               value={location}
               onChangeText={setLocation}
               style={[styles.input, { flex: 1 }]}
@@ -310,7 +321,7 @@ export default function Home() {
         </View>
 
         <View style={[StyleSheet.absoluteFill, { pointerEvents: "none" }]}>
-          <ConfettiComponent />
+          <ConfettiComponent key={confettiEmoji} emoji={confettiEmoji} />
         </View>
       </ScrollView>
     </View>
@@ -329,6 +340,7 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.4,
     shadowRadius: 20,
     elevation: 12,
+    width: "90%",
   },
   helpButtonCard: {
     position: "absolute",

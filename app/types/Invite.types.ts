@@ -10,4 +10,5 @@ export type Invite = {
   createdAt?: string; // ISO string creazione
   updatedAt?: string; // ISO string ultimo aggiornamento
   theme?: Theme;
+  confettiEmoji?: string;
 };
