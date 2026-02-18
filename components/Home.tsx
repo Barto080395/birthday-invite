@@ -38,7 +38,7 @@ export default function Home() {
   const [showCountdownModal, setShowCountdownModal] = useState(false);
   const [inviteId, setInviteId] = useState<string | null>(null);
   const [currentInvite, setCurrentInvite] = useState<Invite | null>(null);
-  const [Loading, setLoading] = useState(false);
+  const [Loading, setLoading] = useState(true);
   const [confettiEmoji, setConfettiEmoji] = useState("❤️"); // default emoji
 
   // STATI GLOBALI
@@ -50,19 +50,20 @@ export default function Home() {
     const url = window.location.href;
     const query = new URL(url).searchParams;
     const id = query.get("id");
-
+  
     if (id) {
-      setLoading(true);
       setInviteId(id);
       setIsOwner(false);
-
+  
       loadInvite(id).finally(() => {
         setLoading(false);
       });
     } else {
       setIsOwner(true);
+      setLoading(false);
     }
   }, []);
+  
 
   const loadInvite = async (id: string) => {
     const invite = await getInvite(id);
@@ -160,7 +161,7 @@ export default function Home() {
     else Linking.openURL(mapsUrl);
   };
 
-  if (Loading) {
+  if (Loading || (inviteId && !currentInvite)) {
     return (
       <Loader
         bgColor={theme.background}
