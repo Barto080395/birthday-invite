@@ -39,7 +39,7 @@ export default function Home() {
   const [inviteId, setInviteId] = useState<string | null>(null);
   const [currentInvite, setCurrentInvite] = useState<Invite | null>(null);
   const [Loading, setLoading] = useState(false);
-  const [confettiEmoji, setConfettiEmoji] = useState("❤️"); // default emoji
+  const [confettiEmoji, setConfettiEmoji] = useState(""); // default emoji
 
   // STATI GLOBALI
   const { isOwner, setIsOwner } = useOwner();

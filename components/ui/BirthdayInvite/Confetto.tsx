@@ -97,8 +97,11 @@ const Confetto: React.FC<ConfettoProps> = ({ left, delay, size, content }) => {
 };
 
 // --- Componente Contenitore Principale (Invariato) ---
-export const ConfettiComponent = ({ emoji = "❤️" }) => {
+export const ConfettiComponent = ({ emoji }: { emoji?: string }) => {
+  if (!emoji) return null;
+
   const confettiCount = 30;
+
 
   // Rigenera confetti quando cambia emoji
   const confettiArray = useMemo(
