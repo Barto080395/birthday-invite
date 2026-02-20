@@ -15,7 +15,7 @@ import Countdown from "@/components/ui/BirthdayInvite/Countdown";
 import { EditableText } from "@/components/ui/BirthdayInvite/EditableText";
 import { Loader } from "@/components/ui/BirthdayInvite/Loader";
 import CustomImage from "@/components/ui/BirthdayInvite/CustomImage";
-import { Share2 } from "lucide-react";
+import { Share2, ArrowRight} from "lucide-react";
 import CountdownModal from "@/app/modal";
 import { useOwner } from "@/app/context/OwnerContext";
 import { useTheme } from "@/app/context/ThemeContext";
@@ -177,7 +177,6 @@ export default function Home() {
           flexGrow: 1,
           justifyContent: "center",
           alignItems: "center",
-          paddingBottom: 50,
         }}
       >
         <View
@@ -279,7 +278,7 @@ export default function Home() {
               ]}
             >
               <Text style={[styles.goText, { color: theme.button.text }]}>
-                Vai
+                <ArrowRight/>
               </Text>
             </TouchableOpacity>
           </View>
@@ -297,6 +296,7 @@ export default function Home() {
                   flexDirection: "row",
                   alignItems: "center",
                   justifyContent: "center",
+                  gap: "0.5rem",
                 }}
               >
                 <Share2 color={theme.button.text} size={20} />
@@ -372,14 +372,13 @@ const styles = StyleSheet.create({
     paddingHorizontal: 25,
     borderRadius: 25,
     alignItems: "center",
-    marginBottom: 25,
-    width: "100%",
+    marginBottom: 20,
   },
   countdownPlaceholder: { color: "#fff", fontSize: 18, textAlign: "center" },
   locationRow: {
     flexDirection: "row",
     alignItems: "center",
-    marginBottom: 20,
+    marginBottom: 10,
     width: "100%",
   },
   input: {
@@ -397,7 +396,7 @@ const styles = StyleSheet.create({
     marginTop: -12,
   },
   goText: { color: "#fff", fontWeight: "bold" },
-  shareButton: { padding: 15, borderRadius: 20, marginBottom: 20 },
+  shareButton: { padding: 15, borderRadius: 20},
   shareText: {
     textAlign: "center",
     color: "#fff",

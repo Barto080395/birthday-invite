@@ -85,7 +85,7 @@ export const EditableText = ({
                   backgroundColor: "white",
                   padding: 15,
                   borderRadius: 12,
-                  width: "100%",
+                 
                   alignSelf: "stretch",
                   overflow: "hidden",
               }
@@ -108,7 +108,7 @@ export const EditableText = ({
 };
 
 const styles = StyleSheet.create({
-  container: { width: "100%", marginBottom: 18 },
+  container: { width: "100%",marginBottom: 18 },
   input: {
     borderWidth: 2,
     borderColor: "black",

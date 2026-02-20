@@ -10,65 +10,61 @@ interface Props {
 export default function OnboardingModal({ visible, onClose }: Props) {
   return (
     <Modal visible={visible} animationType="slide" transparent>
-    <View style={styles.overlay}>
-      <View style={styles.card}>
-        <ScrollView contentContainerStyle={{ paddingVertical: 20 }}>
+      <View style={styles.overlay}>
+        <View style={styles.card}>
           <Text style={styles.title}>Benvenuto in Birthday Invite 🎉</Text>
-  
+
           <Text style={styles.rowTitle}>1. Aggiungi il titolo</Text>
           <Text style={styles.rowText}>
             Dai un nome speciale alla tua festa — es. "Compleanno di Sara".
           </Text>
-  
+
           <Text style={styles.rowTitle}>2. Scegli una foto</Text>
           <Text style={styles.rowText}>
             Clicca su "Scegli immagine" per caricare l'immagine dell'invito.
           </Text>
-  
+
           <Text style={styles.rowTitle}>3. Scrivi il messaggio</Text>
           <Text style={styles.rowText}>
             Inserisci un messaggio personalizzato per i tuoi invitati ✨ Puoi
             raccontare cosa festeggi, dove sarà la festa o qualsiasi dettaglio
             importante 💌
           </Text>
-  
+
           <Text style={styles.rowTitle}>4. Imposta data</Text>
           <Text style={styles.rowText}>
             Tocca il countdown per selezionare data e ora dell’evento ⏳ (la
             data deve essere futura).
           </Text>
-  
+
           <Text style={styles.rowTitle}>5. Personalizza il tema 🎨</Text>
           <Text style={styles.rowText}>
-            Apri il menu Impostazioni ⚙️ in alto e scegli "Theme". Puoi cambiare
-            colori, stile del titolo e pulsanti per rendere l’invito unico 🌈✨
+            Apri il menu Impostazioni ⚙️ e scegli "Theme". Scegli i colori che
+            preferisci per personalizzare l’invito 🌈✨
           </Text>
-  
+
           <Text style={styles.rowTitle}>6. Aggiungi emoji decorative ✨</Text>
           <Text style={styles.rowText}>
             Dal menu Impostazioni ⚙️ puoi scegliere un’emoji per l’effetto
             confetti!
           </Text>
-  
+
           <Text style={styles.rowTitle}>7. Condividi l’invito</Text>
           <Text style={styles.rowText}>
             Premi "Condividi Invito" per inviarlo ai tuoi amici tramite link 📲
           </Text>
-  
+
           <TouchableOpacity onPress={onClose} style={styles.button}>
             <Text style={styles.buttonText}>Ho capito — Inizia!</Text>
           </TouchableOpacity>
-  
+
           <Text style={styles.footer}>
             Puoi riaprire questa guida da Impostazioni.
           </Text>
-        </ScrollView>
+        </View>
       </View>
-    </View>
-  </Modal>
-  
+    </Modal>
   );
-  
 }
 
 const styles = StyleSheet.create({
@@ -86,15 +82,14 @@ const styles = StyleSheet.create({
     borderRadius: 16,
     padding: 20,
     alignItems: "flex-start",
-    maxHeight: "80%",
   },
-  
+
   title: {
     fontSize: 20,
     fontWeight: "800",
     color: "#ff2a7a",
     marginBottom: 12,
-    textAlign: "center",
+    alignSelf: "center",
   },
   rowTitle: {
     fontSize: 15,
