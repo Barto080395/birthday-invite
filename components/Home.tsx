@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useLayoutEffect, useState } from "react";
 import {
   Image,
   Platform,
@@ -46,7 +46,7 @@ export default function Home() {
   const { theme, setTheme } = useTheme();
 
   // Carica ID dalla query string
-  useEffect(() => {
+  useLayoutEffect(() => {
     const url = window.location.href;
     const query = new URL(url).searchParams;
     const id = query.get("id");
