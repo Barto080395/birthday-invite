@@ -48,21 +48,28 @@ export default function Home() {
 
   // Carica ID dalla query string
   useEffect(() => {
-    const url = window.location.href;
-    const query = new URL(url).searchParams;
-    const id = query.get("id");
+    const init = async () => {
+      const url = window.location.href;
+      const query = new URL(url).searchParams;
+      const id = query.get("id");
   
-    if (id) {
-      setLoading(true);
-      setInviteId(id);
-      setIsOwner(false);
+      try {
+        if (id) {
+          setLoading(true);
+          setInviteId(id);
+          setIsOwner(false);
   
-      loadInvite(id).finally(() => setIsCheckingId(false));
-    } else {
-      setIsOwner(true);
-      setIsCheckingId(false); // ✅ AGGIUNGI QUESTO
-      setLoading(true);
-    }
+          await loadInvite(id);
+        } else {
+          setIsOwner(true);
+        }
+      } finally {
+        setIsCheckingId(false);
+        setLoading(false);
+      }
+    };
+  
+    init();
   }, []);
 
   const loadInvite = async (id: string) => {
@@ -162,7 +169,7 @@ export default function Home() {
   };
 
   // Mostra loader se sei ospite e non hai ancora caricato l'invito
-  if (isCheckingId) {
+  if (isCheckingId || Loading) {
     return (
       <Loader
         bgColor={theme.background}
