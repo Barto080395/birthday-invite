@@ -61,6 +61,7 @@ export default function Home() {
     } else {
       setIsOwner(true);
       setIsCheckingId(false); // ✅ AGGIUNGI QUESTO
+      setLoading(true);
     }
   }, []);
 
@@ -161,15 +162,7 @@ export default function Home() {
   };
 
   // Mostra loader se sei ospite e non hai ancora caricato l'invito
-  if (isCheckingId && Loading) {
-    return (
-      <Loader
-        bgColor={theme.background}
-        dotColor={theme.titleColor}
-        duration={800}
-      />
-    );
-  }
+
 
   return (
     <View style={{ flex: 1, backgroundColor: theme.background }}>
