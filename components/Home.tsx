@@ -162,7 +162,15 @@ export default function Home() {
   };
 
   // Mostra loader se sei ospite e non hai ancora caricato l'invito
-
+  if (isCheckingId) {
+    return (
+      <Loader
+        bgColor={theme.background}
+        dotColor={theme.titleColor}
+        duration={800}
+      />
+    );
+  }
 
   return (
     <View style={{ flex: 1, backgroundColor: theme.background }}>
