@@ -39,7 +39,7 @@ export default function Home() {
   const [inviteId, setInviteId] = useState<string | null>(null);
   const [currentInvite, setCurrentInvite] = useState<Invite | null>(null);
   const [Loading, setLoading] = useState(false);
-  const [isCheckingId, setIsCheckingId] = useState(true);
+  const [loadingInvite, setLoadingInvite] = useState(false);
   const [confettiEmoji, setConfettiEmoji] = useState(""); // default emoji
 
   // STATI GLOBALI
@@ -48,18 +48,16 @@ export default function Home() {
 
   // Carica ID dalla query string
   useEffect(() => {
-    const url = window.location.href;
-    const query = new URL(url).searchParams;
+    const query = new URLSearchParams(window.location.search);
     const id = query.get("id");
-
+  
     if (id) {
-      setLoading(true);
       setInviteId(id);
-      setIsOwner(false);
-
-      loadInvite(id).finally(() => setIsCheckingId(false));
-    } else {
-      setIsOwner(true);
+      setLoadingInvite(true);
+  
+      loadInvite(id).finally(() => {
+        setLoadingInvite(false);
+      });
     }
   }, []);
 
@@ -159,16 +157,19 @@ export default function Home() {
     else Linking.openURL(mapsUrl);
   };
 
-  // Mostra loader se sei ospite e non hai ancora caricato l'invito
-  if (isCheckingId) {
-    return (
-      <Loader
-        bgColor={theme.background}
-        dotColor={theme.titleColor}
-        duration={800}
-      />
-    );
-  }
+// Caso guest → ha ID → mostra loader finché carica
+if (inviteId && loadingInvite) {
+  return (
+    <Loader
+      bgColor={theme.background}
+      dotColor={theme.titleColor}
+      duration={800}
+    />
+  );
+}
+
+// Caso owner → NON ha ID → render immediato
+// Caso guest dopo load → render con currentInvite
 
   return (
     <View style={{ flex: 1, backgroundColor: theme.background }}>
