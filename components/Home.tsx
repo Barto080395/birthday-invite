@@ -161,7 +161,7 @@ export default function Home() {
   };
 
   // Mostra loader se sei ospite e non hai ancora caricato l'invito
-  if (isCheckingId) {
+  if (isCheckingId && Loading) {
     return (
       <Loader
         bgColor={theme.background}
