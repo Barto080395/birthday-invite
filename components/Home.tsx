@@ -1,4 +1,4 @@
-import React, { useEffect, useLayoutEffect, useState } from "react";
+import React, { useEffect, useState } from "react";
 import {
   Image,
   Platform,
@@ -46,7 +46,7 @@ export default function Home() {
   const { theme, setTheme } = useTheme();
 
   // Carica ID dalla query string
-  useLayoutEffect(() => {
+  useEffect(() => {
     const url = window.location.href;
     const query = new URL(url).searchParams;
     const id = query.get("id");
@@ -160,15 +160,16 @@ export default function Home() {
     else Linking.openURL(mapsUrl);
   };
 
-  if (Loading) {
-    return (
-      <Loader
-        bgColor={theme.background}
-        dotColor={theme.titleColor}
-        duration={800}
-      />
-    );
-  }
+// Mostra loader se sei ospite e non hai ancora caricato l'invito
+if (!isOwner && !currentInvite) {
+  return (
+    <Loader
+      bgColor={theme.background}
+      dotColor={theme.titleColor}
+      duration={800}
+    />
+  );
+}
 
   return (
     <View style={{ flex: 1, backgroundColor: theme.background }}>
