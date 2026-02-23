@@ -15,7 +15,7 @@ import Countdown from "@/components/ui/BirthdayInvite/Countdown";
 import { EditableText } from "@/components/ui/BirthdayInvite/EditableText";
 import { Loader } from "@/components/ui/BirthdayInvite/Loader";
 import CustomImage from "@/components/ui/BirthdayInvite/CustomImage";
-import { Share2, ArrowRight} from "lucide-react";
+import { Share2, ArrowRight } from "lucide-react";
 import CountdownModal from "@/app/modal";
 import { useOwner } from "@/app/context/OwnerContext";
 import { useTheme } from "@/app/context/ThemeContext";
@@ -39,6 +39,7 @@ export default function Home() {
   const [inviteId, setInviteId] = useState<string | null>(null);
   const [currentInvite, setCurrentInvite] = useState<Invite | null>(null);
   const [Loading, setLoading] = useState(false);
+  const [isCheckingId, setIsCheckingId] = useState(true);
   const [confettiEmoji, setConfettiEmoji] = useState(""); // default emoji
 
   // STATI GLOBALI
@@ -56,9 +57,7 @@ export default function Home() {
       setInviteId(id);
       setIsOwner(false);
 
-      loadInvite(id).finally(() => {
-        setLoading(false);
-      });
+      loadInvite(id).finally(() => setIsCheckingId(false));
     } else {
       setIsOwner(true);
     }
@@ -160,16 +159,16 @@ export default function Home() {
     else Linking.openURL(mapsUrl);
   };
 
-// Mostra loader se sei ospite e non hai ancora caricato l'invito
-if (!isOwner && !currentInvite) {
-  return (
-    <Loader
-      bgColor={theme.background}
-      dotColor={theme.titleColor}
-      duration={800}
-    />
-  );
-}
+  // Mostra loader se sei ospite e non hai ancora caricato l'invito
+  if (isCheckingId) {
+    return (
+      <Loader
+        bgColor={theme.background}
+        dotColor={theme.titleColor}
+        duration={800}
+      />
+    );
+  }
 
   return (
     <View style={{ flex: 1, backgroundColor: theme.background }}>
@@ -279,7 +278,7 @@ if (!isOwner && !currentInvite) {
               ]}
             >
               <Text style={[styles.goText, { color: theme.button.text }]}>
-                <ArrowRight/>
+                <ArrowRight />
               </Text>
             </TouchableOpacity>
           </View>
@@ -397,7 +396,7 @@ const styles = StyleSheet.create({
     marginTop: -12,
   },
   goText: { color: "#fff", fontWeight: "bold" },
-  shareButton: { padding: 15, borderRadius: 20},
+  shareButton: { padding: 15, borderRadius: 20 },
   shareText: {
     textAlign: "center",
     color: "#fff",
