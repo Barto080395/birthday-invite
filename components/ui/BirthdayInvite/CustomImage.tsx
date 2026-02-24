@@ -16,9 +16,10 @@ export default function CustomImage({ imageUri, setImageUri }: Props) {
     launchImageLibrary(
       {
         mediaType: "photo",
-        maxWidth: 150,
-        maxHeight: 150,
-        quality: 1,
+        quality: 0.5,      // ✅ riduce peso file
+        maxWidth: 800,     // ✅ riduce risoluzione
+        maxHeight: 800,
+        includeBase64: false, // ✅ meglio usare uri file
       },
       (response) => {
         if (response.didCancel) return;
@@ -32,6 +33,8 @@ export default function CustomImage({ imageUri, setImageUri }: Props) {
 
         // ✅ Controllo sicuro su TypeScript
         const uri = response.assets?.[0].uri ?? null;
+
+        console.log(response.assets?.[0]);
         if (uri) setImageUri(uri);
       }
     );
