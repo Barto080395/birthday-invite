@@ -1,3 +1,4 @@
+import { useTheme } from "@/app/context/ThemeContext";
 import React, { useState } from "react";
 import {
   View,
@@ -35,6 +36,8 @@ export const EditableText = ({
   const isTitle = title !== undefined;
   const value = isTitle ? title ?? "" : message ?? "";
   const onChange = isTitle ? onChangeTitle : onChangeMessage;
+
+  const {theme} = useTheme()
 
   const confirm = (newValue: string) => {
     if (!newValue.trim()) return;
@@ -82,7 +85,7 @@ export const EditableText = ({
                   fontSize: 16,
                   color: messageColor,
                   textAlign: "center",
-                  backgroundColor: "white",
+                  backgroundColor: theme.card.background,
                   padding: 15,
                   borderRadius: 12,
                  

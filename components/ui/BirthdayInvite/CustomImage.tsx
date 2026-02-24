@@ -16,8 +16,8 @@ export default function CustomImage({ imageUri, setImageUri }: Props) {
     launchImageLibrary(
       {
         mediaType: "photo",
-        maxWidth: 150,
-        maxHeight: 150,
+        //maxWidth: 150,
+        //maxHeight: 150,
         quality: 1,
       },
       (response) => {
